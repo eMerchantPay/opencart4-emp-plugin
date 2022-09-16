@@ -1,0 +1,261 @@
+{# Copyright (C) 2018 emerchantpay Ltd.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * @author   emerchantpay
+ * @copyright  2018 emerchantpay Ltd.
+ * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License, version 2 (GPL-2.0) #}
+
+<div class="panel-group" id="accordion">
+  <div class="card">
+    <div class="card-header">
+      <h4 class="card-title">
+        <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+          <span class="emerchantpay-logo">{{ text_payment_info }}</span>
+        </a>
+      </h4>
+    </div>
+    <div id="collapseOne" class="card-text">
+      <table class="table table-hover tree">
+        <thead>
+        <tr>
+          <th>{{ text_transaction_id }}</th>
+          <th>{{ text_transaction_type }}</th>
+          <th>{{ text_transaction_timestamp }}</th>
+          <th>{{ text_transaction_amount }}</th>
+          <th>{{ text_transaction_status }}</th>
+          <th>{{ text_transaction_message }}</th>
+          <th>{{ text_transaction_mode }}</th>
+          <th>{{ text_transaction_action }}</th>
+          <th>{{ text_transaction_action }}</th>
+          <th>{{ text_transaction_action }}</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for transaction in transactions %}
+        <tr class="treegrid-{{ transaction.unique_id }}{% if transaction.reference_id|length > 1 %}treegrid-parent-{{ transaction.reference_id }}{% endif %}">
+          <td class="text-left">
+            {{ transaction.unique_id }}
+          </td>
+          <td class="text-left">
+            {{ transaction.type }}
+          </td>
+          <td class="text-left">
+            {{ transaction.timestamp }}
+          </td>
+          <td class="text-right">
+            {{ transaction.amount }}
+          </td>
+          <td class="text-left">
+            {{ transaction.status }}
+          </td>
+          <td class="text-left">
+            {{ transaction.message }}
+          </td>
+          <td class="text-left">
+            {{ transaction.mode }}
+          </td>
+          <td class="text-center">
+            {% if transaction.can_capture %}
+              <div class="transaction-action-button">
+                <a class="button btn btn-success" id="button-capture" role="button" data-type="capture"
+                   data-reference-id="{{ transaction.unique_id }}">
+                  <i class="fa fa-check fa-lg"></i>
+                </a>
+                <span class="btn btn-primary" id="img_loading_capture" style="display:none;">
+                    <i class="fa fa-circle-o-notch fa-spin fa-lg"></i>
+                  </span>
+              </div>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if transaction.can_refund %}
+              <div class="transaction-action-button">
+                <a class="button btn btn-warning" id="button-refund" role="button" data-type="refund"
+                   data-reference-id="{{ transaction.unique_id }}">
+                  <i class="fa fa-reply fa-lg"></i>
+                </a>
+                <span class="btn btn-primary" id="img_loading_rebate" style="display:none;">
+                    <i class="fa fa-circle-o-notch fa-spin fa-lg"></i>
+                  </span>
+              </div>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if transaction.can_void %}
+            <div class="transaction-action-button">
+              <a class="button btn btn-danger" id="button-void"
+                  {% if not emerchantpay_direct_supports_void %}
+                    data-bs-toggle="tooltip" data-bs-html="true" data-placement="bottom" title="{{ help_transaction_option_cancel_denied }}"
+                  {% elseif transaction.void_exists %}
+                    data-bs-toggle="tooltip" data-bs-html="true" data-placement="bottom"
+                    title="There is already an approved <strong>Cancel Transaction</strong> for <strong>{{ transaction.type|capitalize }}Transaction</strong> with Unique Id: <strong>{{ transaction.unique_id }}</strong>"
+                  {% endif %}
+
+                  {% if (not emerchantpay_direct_supports_void) or transaction.void_exists %}
+                    disabled="disabled"
+                  {% endif %}
+
+                 role="button" data-type="void" data-reference-id="{{ transaction.unique_id }}">
+                <i class="fas fa-minus-circle"></i>
+              </a>
+              <span class="btn btn-primary" id="img_loading_void" style="display:none;">
+                <i class="fa fa-circle-o-notch fa-spin fa-lg"></i>
+              </span>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="emp-modal" class="modal fade" role="dialog"></div>
+
+<script type="text/javascript">
+    var modalPopupDecimalValueFormatConsts = {
+        decimalPlaces: {{ currency.decimalPlaces }},
+        decimalSeparator: "{{ currency.decimalSeparator }}",
+        thousandSeparator: "{{ currency.thousandSeparator }}"
+    };
+
+    (function ($) {
+        jQuery.exists = function (selector) {
+            return ($(selector).length > 0);
+        }
+    }(window.jQuery));
+
+    $("#button-capture, #button-refund, #button-void").click(function () {
+        if (jQuery(this).is('[disabled]'))
+            return;
+
+        $.ajax({
+            url: '{{ url_modal }}',
+            type: 'post',
+            data: {
+                'order_id': '{{ order_id }}',
+                'reference_id': jQuery(this).attr('data-reference-id'),
+                'type': jQuery(this).attr('data-type')
+            },
+            dataType: 'html',
+            success: function (data) {
+                $('#emp-modal').html(data).modal('show');
+            }
+        });
+    });
+
+    $(document).ready(function () {
+        $('.tree').treegrid({
+            expanderExpandedClass: 'treegrid-expander-expanded',
+            expanderCollapsedClass: 'treegrid-expander-collapsed'
+        });
+
+        var modalObj = $('#emp-modal');
+
+        modalObj.on('hide.bs.modal', function () {
+            destroyBootstrapValidator(modalObj);
+        });
+
+        modalObj.on('shown.bs.modal', function () {
+            /* enable the submit button just in case (if the bootstrapValidator is enabled it will disable the button if necessary */
+            var transactionType = modalObj.find('.modal-dialog').attr('data-type');
+
+            if (transactionType !== 'void') {
+                $('.form-buttons button.btn-submit').removeAttr('disabled');
+
+
+                if (createBootstrapValidator('form.modal-form')) {
+                    executeBootstrapFieldValidator('form.modal-form', 'fieldAmount');
+                }
+            }
+        });
+    });
+
+    function destroyBootstrapValidator(submitForm) {
+        submitForm.bootstrapValidator('destroy');
+    }
+
+    function createBootstrapValidator(submitFormSelector) {
+        var submitForm = $(submitFormSelector);
+        var transactionAmountControlSelector = '#{{ module_name }}_transaction_amount';
+
+        var transactionAmount = formatTransactionAmount($(transactionAmountControlSelector).val());
+
+        destroyBootstrapValidator(submitForm);
+
+
+        var shouldCreateValidator = $.exists(transactionAmountControlSelector);
+
+        /* it is not needed to create attach the bootstrapValidator, when the field to validate is not visible (Void Transaction) */
+        if (!shouldCreateValidator)
+            return false;
+
+        submitForm.bootstrapValidator({
+            fields: {
+                fieldAmount: {
+                    selector: transactionAmountControlSelector,
+                    container: '#{{ module_name }}-amount-error-container',
+                    validators: {
+                        notEmpty: {
+                            message: 'The transaction amount is a required field!'
+                        },
+                        stringLength: {
+                            max: 10
+                        },
+                        greaterThan: {
+                            value: 0,
+                            inclusive: false
+                        },
+                        lessThan: {
+                            value: transactionAmount,
+                            inclusive: true
+                        }
+                    }
+                }
+            }
+        })
+            .on('error.field.bv', function (e, data) {
+                $('.form-buttons button.btn-submit').attr('disabled', 'disabled');
+            })
+            .on('success.field.bv', function (e) {
+                $('.form-buttons button.btn-submit').removeAttr('disabled');
+            })
+            .on('success.form.bv', function (e) {
+                e.preventDefault(); // Prevent the form from submitting
+
+                /* submits the transaction form (No validators have failed) */
+                //submitForm.bootstrapValidator('defaultSubmit');
+            });
+
+        return true;
+    }
+
+    function executeBootstrapFieldValidator(formSelector, validatorFieldName) {
+        var submitForm = $(formSelector);
+
+        submitForm.bootstrapValidator('validateField', validatorFieldName);
+        submitForm.bootstrapValidator('updateStatus', validatorFieldName, 'NOT_VALIDATED');
+    }
+
+    function formatTransactionAmount(amount) {
+        if ((typeof amount == 'undefined') || (amount == null))
+            amount = 0;
+
+        return $.number(amount, modalPopupDecimalValueFormatConsts.decimalPlaces,
+            modalPopupDecimalValueFormatConsts.decimalSeparator,
+            modalPopupDecimalValueFormatConsts.thousandSeparator);
+    }
+
+</script>

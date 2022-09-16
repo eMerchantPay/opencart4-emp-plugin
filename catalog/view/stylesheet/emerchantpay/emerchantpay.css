@@ -1,0 +1,35 @@
+/* common */
+#emerchantpay-alert.alert.alert-checkout {
+    display: none;
+}
+
+/* emerchantpay direct */
+@media(max-width:992px) {
+    .form-container {
+        float: none !important;
+        margin: 0 auto !important;
+    }
+
+    .form-container input {
+        margin: 16px 0;
+    }
+}
+
+@media(min-width:992px) {
+    .card-wrapper {
+        float: right;
+        margin-top: 8px;
+    }
+
+    .form-container {
+        float: left;
+    }
+
+    .form-container input {
+        margin: 16px;
+    }
+}
+
+.form-container {
+    width:350px;
+}

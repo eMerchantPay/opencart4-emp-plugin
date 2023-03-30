@@ -1,0 +1,24 @@
+{
+    "name": "emerchantpay/opencart4-emp-plugin",
+    "description": "emerchantpay Gateway Module for OpenCart",
+    "type": "opencart-module",
+    "license": "GPL-2.0",
+    "version": "1.0.1",
+    "authors": [
+        {
+            "name": "emerchantpay",
+            "email": "shopping_carts@emerchantpay.com",
+            "homepage":"https://emerchantpay.com"
+        }
+    ],
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.7",
+        "phpmd/phpmd": "^2.13"
+    },
+    "minimum-stability": "stable",
+    "scripts": {
+        "pack": [
+            "bin/pack-ocmod.sh"
+        ]
+    }
+}

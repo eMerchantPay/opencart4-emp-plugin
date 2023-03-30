@@ -217,7 +217,8 @@ class EmerchantpayHelper
 	public static function getAvailableBankCodes(): array
 	{
 		return [
-			Banks::CPI => 'Interac Combined Pay-in'
+			Banks::CPI => 'Interac Combined Pay-in',
+			Banks::BCT => 'Bancontact'
 		];
 	}
 

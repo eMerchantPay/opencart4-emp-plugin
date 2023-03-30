@@ -7,7 +7,7 @@ Requirements
 ------------
 
 * OpenCart 4.0.X (due to architectural changes, this module is __incompatible__ with older OpenCart versions)
-* [GenesisPHP v1.21.2](https://github.com/GenesisGateway/genesis_php/tree/1.21.2) - (Integrated in Module)
+* [GenesisPHP v1.21.6](https://github.com/GenesisGateway/genesis_php/tree/1.21.6) - (Integrated in Module)
 * PCI-certified server in order to use ```emerchantpay Direct```
 
 GenesisPHP Requirements
@@ -94,6 +94,7 @@ Supported Transactions & Payment Methods
   * __Neteller__
   * __Online Banking__
     * __Interac Combined Pay-in (CPI)__ 
+    * __Bancontact (BCT)__ 
   * __OXXO__
   * __P24__
   * __Pago Facil__

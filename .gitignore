@@ -1,3 +1,5 @@
 /.idea/
 .DS_Store
 emerchantpay.ocmod.zip
+/vendor/
+bin/check-standards

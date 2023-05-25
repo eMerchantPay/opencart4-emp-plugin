@@ -83,7 +83,10 @@ class EmerchantpayCheckout extends BaseController
 			'text_loading'   => $this->language->get('text_loading'),
 
 			'button_confirm' => $this->language->get('button_confirm'),
-			'button_target'  => $this->url->link('extension/emerchantpay/payment/emerchantpay_checkout|send', 'language=' . $this->config->get('config_language')),
+			'button_target'  => $this->buildUrl(
+				'extension/emerchantpay/payment/emerchantpay_checkout',
+				'send'
+			),
 
 			'scripts'        => $this->document->getScripts(),
 			'styles'         => $this->document->getStyles()
@@ -103,7 +106,7 @@ class EmerchantpayCheckout extends BaseController
 			'text_loading'                    => $this->language->get('text_loading'),
 			'text_payment_mixed_cart_content' => $this->language->get('text_payment_mixed_cart_content'),
 			'button_shopping_cart'            => $this->language->get('button_shopping_cart'),
-			'button_target'                   => $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language'))
+			'button_target'                   => $this->buildUrl('checkout/cart'),
 		);
 
 		return $data;
@@ -156,13 +159,25 @@ class EmerchantpayCheckout extends BaseController
 					'customer_phone'     => $order_info['telephone'],
 
 					'notification_url'   =>
-						$this->url->link('extension/emerchantpay/payment/emerchantpay_checkout%7Ccallback', 'language=' . $this->config->get('config_language')),
+						$this->buildUrl(
+							'extension/emerchantpay/payment/emerchantpay_checkout',
+							'callback',
+						),
 					'return_success_url' =>
-						$this->url->link('extension/emerchantpay/payment/emerchantpay_checkout%7Csuccess', 'language=' . $this->config->get('config_language')),
+						$this->buildUrl(
+							'extension/emerchantpay/payment/emerchantpay_checkout',
+							'success',
+						),
 					'return_failure_url' =>
-						$this->url->link('extension/emerchantpay/payment/emerchantpay_checkout%7Cfailure', 'language=' . $this->config->get('config_language')),
+						$this->buildUrl(
+							'extension/emerchantpay/payment/emerchantpay_checkout',
+							'failure',
+						),
 					'return_cancel_url'  =>
-						$this->url->link('extension/emerchantpay/payment/emerchantpay_checkout%7Ccancel', 'language=' . $this->config->get('config_language')),
+						$this->buildUrl(
+							'extension/emerchantpay/payment/emerchantpay_checkout',
+							'cancel',
+						),
 
 					'additional'         => array(
 						'user_id'            => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getCurrentUserId(),
@@ -353,7 +368,7 @@ class EmerchantpayCheckout extends BaseController
 	 */
 	public function success(): void
 	{
-		$this->response->redirect($this->url->link('checkout/success', 'language=' . $this->config->get('config_language')));
+		$this->response->redirect($this->buildUrl('checkout/success'));
 	}
 
 	/**
@@ -367,7 +382,7 @@ class EmerchantpayCheckout extends BaseController
 
 		$this->session->data['error'] = $this->language->get('text_payment_failure');
 
-		$this->response->redirect($this->url->link('checkout/checkout', 'language=' . $this->config->get('config_language')));
+		$this->response->redirect($this->buildUrl('checkout/checkout'));
 	}
 
 	/**
@@ -381,7 +396,7 @@ class EmerchantpayCheckout extends BaseController
 
 		$this->session->data['error'] = $this->language->get('text_payment_cancelled');
 
-		$this->response->redirect($this->url->link('checkout/checkout', 'language=' . $this->config->get('config_language')));
+		$this->response->redirect($this->buildUrl('checkout/checkout'));
 	}
 
 	/**
@@ -394,7 +409,7 @@ class EmerchantpayCheckout extends BaseController
 		$is_callback = strpos((string)$this->request->get['route'], 'callback') !== false;
 
 		if (!$this->customer->isLogged() && !$is_callback) {
-			$this->response->redirect($this->url->link('account/login', 'language=' . $this->config->get('config_language')));
+			$this->response->redirect($this->buildUrl('account/login'));
 		}
 	}
 

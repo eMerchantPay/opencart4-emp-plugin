@@ -37,6 +37,8 @@ use Opencart\Catalog\Model\Extension\Emerchantpay\Payment\Emerchantpay\BaseModel
  */
 class EmerchantpayHelper
 {
+	const CONTROLLER_ACTION_SEPARATOR = '.';
+
 	const PPRO_TRANSACTION_SUFFIX     = '_ppro';
 	const TRANSACTION_LANGUAGE_PREFIX = 'text_transaction_';
 

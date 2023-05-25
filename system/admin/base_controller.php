@@ -835,10 +835,9 @@ abstract class BaseController extends Controller
 		$result = array();
 
 		$query = $this->db->query('SELECT *, ort.`date_added` as `transaction_date` FROM `' . DB_PREFIX . $this->module_name . '_cronlog` '
-			. 'JOIN `' . DB_PREFIX . $this->module_name . '_cronlog_transactions` USING(`log_entry_id`) '
-			. 'JOIN `' . DB_PREFIX . 'subscription_transaction` as ort USING(`subscription_transaction_id`) '
-			. 'JOIN `' . DB_PREFIX . 'order` ON 
-			`' . DB_PREFIX . $this->module_name . '_cronlog_transactions`.order_id = `' . DB_PREFIX . 'order`.order_id '
+			. 'JOIN `' . DB_PREFIX . $this->module_name . '_cronlog_transactions` as plugin_log USING(`log_entry_id`) '
+			. 'JOIN `' . DB_PREFIX . 'subscription` as ort ON `ort`.subscription_id = `plugin_log`.subscription_transaction_id '
+			. 'JOIN `' . DB_PREFIX . 'order` ON `plugin_log`.order_id = `' . DB_PREFIX . 'order`.order_id '
 			. 'ORDER BY `log_entry_id` DESC,`subscription_transaction_id` DESC ');
 
 		if ($query->num_rows) {
@@ -1166,6 +1165,8 @@ abstract class BaseController extends Controller
 			'text' => $heading_title,
 			'href' => $this->url->link("{$this->route_prefix}payment/{$this->module_name}", $this->getTokenParam() . '=' . $this->getToken(), true)
 		);
+
+		$data['back'] = $this->getPaymentLink($this->getToken());
 
 		$this->response->setOutput(
 			$this->load->view("../{$this->route_prefix}extension/payment/{$this->module_name}", $data)

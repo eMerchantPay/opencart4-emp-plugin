@@ -91,8 +91,11 @@ class EmerchantpayDirect extends BaseController
 			'entry_cc_expiry'  => $this->language->get('entry_cc_expiry'),
 			'entry_cc_cvv'     => $this->language->get('entry_cc_cvv'),
 
-			'button_confirm'   => $this->language->get('button_confirm'),
-			'button_target'    => $this->url->link('extension/emerchantpay/payment/emerchantpay_direct|send', 'language=' . $this->config->get('config_language')),
+			'button_confirm' => $this->language->get('button_confirm'),
+			'button_target'  => $this->buildUrl(
+				'extension/emerchantpay/payment/emerchantpay_direct',
+				'send'
+			),
 
 			'scripts'          => $this->document->getScripts(),
 			'styles'           => $this->document->getStyles(),
@@ -110,7 +113,7 @@ class EmerchantpayDirect extends BaseController
 			'text_loading'                    => $this->language->get('text_loading'),
 			'text_payment_mixed_cart_content' => $this->language->get('text_payment_mixed_cart_content'),
 			'button_shopping_cart'            => $this->language->get('button_shopping_cart'),
-			'button_target'                   => $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language'))
+			'button_target'                   => $this->buildUrl('checkout/cart')
 		);
 	}
 
@@ -167,9 +170,9 @@ class EmerchantpayDirect extends BaseController
 						'year'
 					),
 
-					'notification_url'   => $this->url->link('extension/emerchantpay/payment/emerchantpay_direct/callback', 'language=' . $this->config->get('config_language')),
-					'return_success_url' => $this->url->link('extension/emerchantpay/payment/emerchantpay_direct/success', 'language=' . $this->config->get('config_language')),
-					'return_failure_url' => $this->url->link('extension/emerchantpay/payment/emerchantpay_direct/failure', 'language=' . $this->config->get('config_language')),
+					'notification_url'   => $this->buildUrl('extension/emerchantpay/payment/emerchantpay_direct/callback'),
+					'return_success_url' => $this->buildUrl('extension/emerchantpay/payment/emerchantpay_direct/success'),
+					'return_failure_url' => $this->buildUrl('extension/emerchantpay/payment/emerchantpay_direct/failure')
 				);
 
 				$this->populateAddresses($order_info, $data);
@@ -194,7 +197,7 @@ class EmerchantpayDirect extends BaseController
 
 					$this->model_extension_emerchantpay_payment_emerchantpay_direct->populateTransaction($data);
 
-					$redirect_url = $this->url->link('checkout/success', 'language=' . $this->config->get('config_language'));
+					$redirect_url = $this->buildUrl('checkout/success');
 
 					switch ($transaction->status) {
 						case States::PENDING_ASYNC:
@@ -367,7 +370,7 @@ class EmerchantpayDirect extends BaseController
 	 */
 	public function success(): void
 	{
-		$this->response->redirect($this->url->link('checkout/success', 'language=' . $this->config->get('config_language')));
+		$this->response->redirect($this->buildUrl('checkout/success'));
 	}
 
 	/**
@@ -381,7 +384,7 @@ class EmerchantpayDirect extends BaseController
 
 		$this->session->data['error'] = $this->language->get('text_payment_failure');
 
-		$this->response->redirect($this->url->link('checkout/checkout', 'language=' . $this->config->get('config_language')));
+		$this->response->redirect($this->buildUrl('checkout/checkout'));
 	}
 
 	/**
@@ -439,7 +442,7 @@ class EmerchantpayDirect extends BaseController
 		$is_callback = strpos((string)$this->request->get['route'], 'callback') !== false;
 
 		if (!$this->customer->isLogged() && !$is_callback) {
-			$this->response->redirect($this->url->link('account/login', 'language=' . $this->config->get('config_language')));
+			$this->response->redirect($this->buildUrl('account/login'));
 		}
 	}
 

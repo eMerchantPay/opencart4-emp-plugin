@@ -23,6 +23,7 @@ if (!class_exists('Genesis\Genesis', false)) {
 	require DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
 }
 
+use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
 use Opencart\System\Engine\Controller;
 
 /**
@@ -43,6 +44,26 @@ abstract class BaseController extends Controller
 	 * @var string
 	 */
 	protected $module_name = null;
+
+	/**
+	 * Build URL query using predefined action separator
+	 *
+	 * @param string $controller Base URL to be used
+	 * @param string $action (Optional) Action to be attached to the $url with the separator
+	 * @return string
+	 */
+	protected function buildUrl($controller, $action = ''): string
+	{
+		if (!empty($action)) {
+			$action_separator = EmerchantpayHelper::CONTROLLER_ACTION_SEPARATOR;
+			$controller .= "$action_separator$action";
+		}
+
+		return $this->url->link(
+			$controller,
+			'language=' . $this->config->get('config_language')
+		);
+	}
 
 	/**
 	 * Populate billing and shipping address according to existing data

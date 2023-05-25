@@ -49,39 +49,34 @@ class EmerchantpayCheckout extends BaseModel
 	 * Main method
 	 *
 	 * @param $address //Order Address
-	 * @param $total   //Order Total
 	 *
 	 * @return array
 	 */
-	public function getMethod($address, $total = 0): array
+	public function getMethods($address): array
 	{
 		$this->load->language('extension/emerchantpay/payment/emerchantpay_checkout');
 
-		$query = $this->db->query("
-			SELECT *
-			FROM " . DB_PREFIX . "zone_to_geo_zone 
-			WHERE geo_zone_id = '" . (int)$this->config->get('emerchantpay_checkout_geo_zone_id') . "' AND
-			country_id = '" . (int)$address['country_id'] . "' AND
-			(zone_id = '" . (int)$address['zone_id'] . "' OR zone_id = '0')
-		");
-
-		if ($this->config->get('emerchantpay_checkout_total') > 0 && $this->config->get('emerchantpay_checkout_total') > $total) {
-			$status = false;
-		} elseif (!$this->config->get('emerchantpay_checkout_geo_zone_id')) {
+		if (!$this->config->get('emerchantpay_checkout_geo_zone_id')) {
 			$status = true;
-		} elseif ($query->num_rows) {
+		}  elseif (!$this->config->get('config_checkout_payment_address')) {
+			// this is "Billing Address required" from store settings. If unchecked, no further checks are needed
 			$status = true;
 		} else {
-			$status = false;
+			$status = $this->checkGeoZoneAvailability($address);
 		}
 
 		$method_data = array();
 
 		if ($status) {
+			$option_data['emerchantpay_checkout'] = [
+				'code' => 'emerchantpay_checkout.emerchantpay_checkout',
+				'name' => $this->language->get('text_title')
+			];
+
 			$method_data = array(
 				'code'       => 'emerchantpay_checkout',
-				'title'      => $this->language->get('text_title'),
-				'terms'      => '',
+				'name'       => $this->language->get('text_title'),
+				'option'     => $option_data,
 				'sort_order' => $this->config->get('emerchantpay_checkout_sort_order')
 			);
 		}
@@ -357,7 +352,9 @@ class EmerchantpayCheckout extends BaseModel
 		$processed_list = array();
 		$alias_map = array();
 
-		$selected_types = $this->config->get('emerchantpay_checkout_transaction_type');
+		$selected_types = $this->orderCardTransactionTypes(
+			$this->config->get('emerchantpay_checkout_transaction_type')
+		);
 		$methods = Methods::getMethods();
 
 		foreach ($methods as $method) {
@@ -625,5 +622,22 @@ class EmerchantpayCheckout extends BaseModel
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Order transaction types with Card Transaction types in front
+	 *
+	 * @param array $selected_types Selected transaction types
+	 * @return array
+	 */
+	private function orderCardTransactionTypes($selected_types)
+	{
+		$custom_order = \Genesis\API\Constants\Transaction\Types::getCardTransactionTypes();
+
+		asort($selected_types);
+
+		$sorted_array = array_intersect($custom_order, $selected_types);
+
+		return array_merge($sorted_array, array_diff($selected_types, $sorted_array));
 	}
 }

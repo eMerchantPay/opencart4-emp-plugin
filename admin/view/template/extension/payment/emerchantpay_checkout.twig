@@ -122,7 +122,7 @@
                   <select id="{{ module_name }}_bank_codes" name="{{ module_name }}_bank_codes[]"
                           class="form-select" multiple="multiple">
                     {% for bank_code in bank_codes %}
-                      {% if emerchantpay_checkout_bank_codes is iterable and emerchantpay_checkout_bank_codes in bank_code['id']|keys %}
+                      {% if emerchantpay_checkout_bank_codes is iterable and bank_code['id'] in emerchantpay_checkout_bank_codes %}
                         <option value="{{ bank_code['id'] }}"
                                 selected="selected">{{ bank_code['name'] }}</option>
                       {% else %}
@@ -235,18 +235,6 @@
                       {% endif %}
                     {% endfor %}
                   </select>
-                </div>
-              </div>
-              <div class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="input-total">
-                  <span data-bs-toggle="tooltip" title="{{ help_total }}">
-                      {{ entry_total }}
-                  </span>
-                </label>
-                <div class="col-sm-10">
-                  <input type="text" name="emerchantpay_checkout_total"
-                         value="{{ emerchantpay_checkout_total }}" placeholder="{{ entry_total }}"
-                         id="input-total" class="form-control"/>
                 </div>
               </div>
               <div class="row mb-3">

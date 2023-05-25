@@ -876,6 +876,34 @@ abstract class BaseModel extends Model
 	}
 
 	/**
+	 * Execute a query to find if the payment method is available in the user's geo zone
+	 *
+	 * @param array $address Array with Address data from checkout
+	 *
+	 * @return bool
+	 */
+	protected function checkGeoZoneAvailability($address)
+	{
+		$status = false;
+		$query  = $this->db->query("
+				SELECT * 
+				FROM `" . DB_PREFIX . "zone_to_geo_zone` 
+				WHERE 
+				`geo_zone_id` = '" . (int)$this->config->get("{$this->module_name}_geo_zone_id") . "' 
+				AND 
+				`country_id` = '" . (int)($address['country_id'] ?? 0) . "' 
+				AND 
+				(`zone_id` = '" . (int)($address['zone_id'] ?? 0) . "' OR `zone_id` = '0')
+			");
+
+		if ($query->num_rows) {
+			$status = true;
+		}
+
+		return $status;
+	}
+
+	/**
 	 * Generates a comma-separated list of the order statuses that should not be re-billed
 	 *
 	 * @return string

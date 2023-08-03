@@ -7,7 +7,7 @@ Requirements
 ------------
 
 * OpenCart 4.0.2.X (due to architectural changes, this module is __incompatible__ with older OpenCart versions)
-* [GenesisPHP v1.21.7](https://github.com/GenesisGateway/genesis_php/tree/1.21.7) - (Integrated in Module)
+* [GenesisPHP v1.21.11](https://github.com/GenesisGateway/genesis_php/tree/1.21.11) - (Integrated in Module)
 * PCI-certified server in order to use ```emerchantpay Direct```
 
 GenesisPHP Requirements

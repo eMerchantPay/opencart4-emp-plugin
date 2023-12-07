@@ -144,7 +144,7 @@ class EmerchantpayDirect extends BaseController
 					),
 
 					'currency'           => $this->model_extension_emerchantpay_payment_emerchantpay_direct->getCurrencyCode(),
-					'amount'             => $order_info['total'],
+					'amount'             => (float)$order_info['total'],
 
 					'customer_email'     => $order_info['email'],
 					'customer_phone'     => $order_info['telephone'],

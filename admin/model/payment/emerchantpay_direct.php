@@ -44,7 +44,7 @@ class EmerchantpayDirect extends Model
 	 *
 	 * @var string
 	 */
-	protected $module_version = '1.1.1';
+	protected $module_version = '1.1.3';
 
 	/**
 	 * Perform installation logic

@@ -153,7 +153,7 @@ class EmerchantpayCheckout extends BaseController
 					'language'           => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getLanguage(),
 
 					'currency'           => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getCurrencyCode(),
-					'amount'             => $order_info['total'],
+					'amount'             => (float)$order_info['total'],
 
 					'customer_email'     => $order_info['email'],
 					'customer_phone'     => $order_info['telephone'],

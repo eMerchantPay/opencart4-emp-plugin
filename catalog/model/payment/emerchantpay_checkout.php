@@ -484,6 +484,14 @@ class EmerchantpayCheckout extends BaseModel
 					);
 				}
 				break;
+			case Types::PAYSAFECARD:
+				$user_id = $order['additional']['user_id'];
+				$customer_id = ($user_id > 0) ? $user_id : $order['additional']['user_hash'];
+				$parameters = array(
+					'customer_id' => $customer_id
+				);
+				break;
+
 		}
 
 		return $parameters;

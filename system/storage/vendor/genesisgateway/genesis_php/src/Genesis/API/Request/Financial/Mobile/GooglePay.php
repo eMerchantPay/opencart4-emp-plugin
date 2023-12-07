@@ -36,7 +36,6 @@ use Genesis\API\Traits\Request\Financial\DescriptorAttributes;
 use Genesis\API\Traits\Request\Financial\PaymentAttributes;
 use Genesis\API\Traits\Request\Financial\Threeds\V2\AllAttributes as AllThreedsV2Attributes;
 use Genesis\API\Traits\Request\Mobile\GooglePayAttributes;
-use Genesis\API\Traits\RestrictedSetter;
 use Genesis\Exceptions\InvalidArgument;
 use Genesis\Utils\Common as CommonUtils;
 use Genesis\Utils\Currency;
@@ -50,7 +49,7 @@ use Genesis\Utils\Currency;
  */
 class GooglePay extends Financial
 {
-    use AddressInfoAttributes, PaymentAttributes, GooglePayAttributes, RestrictedSetter,
+    use AddressInfoAttributes, PaymentAttributes, GooglePayAttributes,
         BirthDateAttributes, BusinessAttributes, DocumentAttributes,
         DescriptorAttributes, AllThreedsV2Attributes;
 

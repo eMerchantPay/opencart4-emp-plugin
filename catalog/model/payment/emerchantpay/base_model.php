@@ -23,6 +23,8 @@ if (!class_exists('Genesis\Genesis', false)) {
 	require DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
 }
 
+use DateTime;
+use Genesis\API\Request\WPF\Create;
 use Genesis\Config;
 use Genesis\Exceptions\ErrorAPI;
 use Genesis\Genesis;
@@ -32,6 +34,7 @@ use Genesis\API\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as 
 use Genesis\API\Constants\Transaction\States;
 use Genesis\API\Constants\Transaction\Types;
 use Opencart\Extension\Emerchantpay\System\DbHelper;
+use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
 use Opencart\System\Engine\Model;
 
 /**
@@ -114,6 +117,14 @@ abstract class BaseModel extends Model
 	 */
 	const OC_TAX_CLASS_PHYSICAL_PRODUCT = 9;
 	const OC_TAX_CLASS_VIRTUAL_PRODUCT  = 10;
+
+	const THREEDS_V2_JAVA_ENABLED                 = 'java_enabled';
+	const THREEDS_V2_COLOR_DEPTH                  = 'color_depth';
+	const THREEDS_V2_BROWSER_LANGUAGE             = 'browser_language';
+	const THREEDS_V2_SCREEN_HEIGHT                = 'screen_height';
+	const THREEDS_V2_SCREEN_WIDTH                 = 'screen_width';
+	const THREEDS_V2_USER_AGENT                   = 'user_agent';
+	const THREEDS_V2_BROWSER_TIMEZONE_ZONE_OFFSET = 'browser_timezone_zone_offset';
 
 	/**
 	 * Module Name
@@ -600,28 +611,6 @@ abstract class BaseModel extends Model
 	}
 
 	/**
-	 * Get the current front-end language
-	 *
-	 * @return string
-	 */
-	public function getLanguage(): string
-	{
-		$language = isset($this->session->data['language']) ? $this->session->data['language'] : $this->config->get('config_language');
-
-		$language_code = substr($language, 0, 2);
-
-		$this->bootstrap();
-
-		$is_available = @constant('\Genesis\API\Constants\i18n::' . strtoupper($language_code));
-
-		if ($is_available) {
-			return strtolower($language_code);
-		} else {
-			return 'en';
-		}
-	}
-
-	/**
 	 * Get a description-formatted list of products
 	 * inside an order
 	 *
@@ -643,13 +632,48 @@ abstract class BaseModel extends Model
 	}
 
 	/**
+	 * Get the Order Products stored in the Database
+	 *
+	 * @param $order_id
+	 *
+	 * @return mixed
+	 */
+	public function getDbOrderProducts($order_id): mixed
+	{
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product	WHERE order_id = '" . (int)$order_id . "'");
+
+		return $query->rows;
+	}
+
+	/**
+	 * Get Products Information
+	 *
+	 * @param array $products
+	 *
+	 * @return mixed
+	 */
+	public function getProductsInfo($products = array()): mixed
+	{
+		$ids = array();
+		foreach ($products as $product) {
+			array_push($ids, abs((int)$product));
+		}
+
+		$products_resource = $this->db->query("SELECT *	FROM " . DB_PREFIX . "product WHERE product_id IN (" . implode(', ', $ids) . ")");
+
+		return $products_resource->rows;
+	}
+
+	/**
 	 * Determines whether the call to the cron is allowed based on IP address from which the cron is called
 	 *
 	 * @return bool
 	 */
 	protected function isCronCallAllowed(): bool
 	{
-		return $this->request->server['REMOTE_ADDR'] == trim($this->config->get("{$this->module_name}_cron_allowed_ip"));
+		$remote_address = EmerchantpayHelper::getFirstRemoteAddress($this->request->server['REMOTE_ADDR']);
+
+		return $remote_address == trim($this->config->get("{$this->module_name}_cron_allowed_ip"));
 	}
 
 	/**
@@ -658,6 +682,8 @@ abstract class BaseModel extends Model
 	 * @param array $data
 	 *
 	 * @return void
+	 *
+	 * @throws \Exception
 	 */
 	protected function processRecurringOrder($data): void
 	{
@@ -671,10 +697,10 @@ abstract class BaseModel extends Model
 			'duration'        => $data['recurring_duration']
 		);
 
-		$order_recurring_start = new \DateTime(substr($data['date_added'], 0, 10)); //oc_order_recurring.date_added
+		$order_recurring_start = new DateTime(substr($data['date_added'], 0, 10)); //oc_order_recurring.date_added
 		$trial_end = clone $order_recurring_start;
 
-		$now = new \DateTime(date('Y-m-d'));
+		$now = new DateTime(date('Y-m-d'));
 
 		$is_pay_day = false;
 
@@ -704,7 +730,7 @@ abstract class BaseModel extends Model
 					$recurring['cycle'] * $recurring['duration']
 				);
 			} else {
-				$recurring_end = new \DateTime('2999-01-01');
+				$recurring_end = new DateTime('2999-01-01');
 			}
 			if ($now < $recurring_end) {
 				$is_pay_day = $this->isPayDay(
@@ -780,7 +806,7 @@ abstract class BaseModel extends Model
 					'transaction type' => Types::RECURRING_SALE,
 					'transaction_id'   => $this->genTransactionId(),
 					'usage'            => $this->getUsage(),
-					'remote_address'   => $this->request->server['REMOTE_ADDR'],
+					'remote_address'   => EmerchantpayHelper::getFirstRemoteAddress($this->request->server['REMOTE_ADDR']),
 					'reference_id'     => $rec_data['reference'],
 					'amount'           => $rec_data['amount'],
 					'currency'         => $rec_data['currency_code']
@@ -789,7 +815,7 @@ abstract class BaseModel extends Model
 				$response = $this->sendRecurringSale($data);
 
 				if ($response != false) {
-					$timestamp = ($response->timestamp instanceof \DateTime) ? $response->timestamp->format('c') : $response->timestamp;
+					$timestamp = ($response->timestamp instanceof DateTime) ? $response->timestamp->format('c') : $response->timestamp;
 
 					$data = array(
 						'order_id'          => $transaction['order_id'],
@@ -904,6 +930,52 @@ abstract class BaseModel extends Model
 	}
 
 	/**
+	 * Append 3DSv2 parameters to the Genesis Request
+	 *
+	 * @param $genesis
+	 * @param $data
+	 *
+	 * @return void
+	 */
+	protected function addThreedsParamsToRequest($genesis, $data): void
+	{
+		/** @var Create $request */
+		$request = $genesis->request();
+		$request->setThreedsV2ControlChallengeIndicator($data['threeds_challenge_indicator'])
+			->setThreedsV2PurchaseCategory($data['threeds_purchase_category'])
+			->setThreedsV2MerchantRiskDeliveryTimeframe($data['threeds_delivery_timeframe'])
+			->setThreedsV2MerchantRiskShippingIndicator($data['threeds_shipping_indicator'])
+			->setThreedsV2MerchantRiskReorderItemsIndicator($data['threeds_reorder_items_indicator'])
+			->setThreedsV2CardHolderAccountRegistrationDate($data['threeds_registration_date'])
+			->setThreedsV2CardHolderAccountRegistrationIndicator($data['threeds_registration_indicator'])
+		;
+		if (!$data['is_guest']) {
+			$request->setThreedsV2CardHolderAccountCreationDate($data['threeds_creation_date'])
+				->setThreedsV2CardHolderAccountShippingAddressDateFirstUsed($data['threads_shipping_address_date_first_used'])
+				->setThreedsV2CardHolderAccountShippingAddressUsageIndicator($data['threeds_shipping_address_usage_indicator'])
+				->setThreedsV2CardHolderAccountTransactionsActivityLast24Hours($data['transactions_activity_last_24_hours'])
+				->setThreedsV2CardHolderAccountTransactionsActivityPreviousYear($data['transactions_activity_previous_year'])
+				->setThreedsV2CardHolderAccountPurchasesCountLast6Months($data['purchases_count_last_6_months'])
+			;
+		}
+
+		$amount = (float)$genesis->request()->getAmount();
+		if ($amount <= $data['sca_exemption_amount']) {
+			$genesis->request()->setScaExemption($data['sca_exemption_value']);
+		}
+	}
+
+	/**
+	 * Check settings if 3DSv2 is enabled
+	 *
+	 * @return bool
+	 */
+	protected function isThreedsAllowed(): bool
+	{
+		return (bool)$this->config->get($this->module_name . '_threeds_allowed');
+	}
+
+	/**
 	 * Generates a comma-separated list of the order statuses that should not be re-billed
 	 *
 	 * @return string
@@ -941,8 +1013,8 @@ abstract class BaseModel extends Model
 	/**
 	 * Calculates whether now is a "pay day" (the due-date of the recurring order)
 	 *
-	 * @param \DateTime $now
-	 * @param \DateTime $start_payment
+	 * @param DateTime $now
+	 * @param DateTime $start_payment
 	 * @param string $frequency
 	 * @param string $cycle
 	 * @param string $duration
@@ -955,7 +1027,7 @@ abstract class BaseModel extends Model
 
 		$payment_no = 0;
 
-		$due_day = new \DateTime('0000-00-00');
+		$due_day = new DateTime('0000-00-00');
 
 		if ($duration == 0) {
 			$duration = 1e6;
@@ -975,13 +1047,13 @@ abstract class BaseModel extends Model
 	/**
 	 * Calculates the payment due date
 	 *
-	 * @param \DateTime $payment start day of the recurring
+	 * @param DateTime $payment start day of the recurring
 	 * @param string $frequency recurring frequency
 	 * @param string $cycle recurring cycle
 	 *
-	 * @return \DateTime
+	 * @return DateTime
 	 */
-	private function getPaymentDueDate($payment, $frequency, $cycle): \DateTime
+	private function getPaymentDueDate($payment, $frequency, $cycle): DateTime
 	{
 		if ($frequency == 'semi_month') {
 			$payment2 = clone $payment;

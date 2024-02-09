@@ -123,6 +123,69 @@
                   </select>
                 </div>
               </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="emerchantpay_direct_threeds_allowed">
+                      <span data-toggle="tooltip" title="{{ help_threeds_allowed }}">
+                        {{ entry_threeds_allowed }}
+                      </span>
+                    </label>
+                    <div class="col-sm-10 form-check form-switch form-switch-lg">
+                        <input type="hidden" name="emerchantpay_direct_threeds_allowed"
+                               value="{{ emerchantpay_direct_threeds_allowed }}"/>
+                        <input type="checkbox" class="form-check-input" id="emerchantpay_direct_threeds_allowed"
+                                {% if emerchantpay_direct_threeds_allowed %}
+                                    checked="checked"
+                                {% endif %}
+                        />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="emerchantpay_direct_threeds_challenge_indicator">
+                      <span data-toggle="tooltip" title="{{ help_threeds_challenge_indicator }}">
+                        {{ entry_threeds_challenge_indicator }}
+                      </span>
+                    </label>
+                    <div class="col-sm-10">
+                        <select name="emerchantpay_direct_threeds_challenge_indicator"
+                                id="emerchantpay_direct_threeds_challenge_indicator" class="form-select">
+                            {% for threeds_challenge_indicator in threeds_challenge_indicators %}
+                                {% if threeds_challenge_indicator.id == emerchantpay_direct_threeds_challenge_indicator %}
+                                    <option value="{{ threeds_challenge_indicator.id }}"
+                                            selected="selected">{{ threeds_challenge_indicator.name }}</option>
+                                {% else %}
+                                    <option value="{{ threeds_challenge_indicator.id }}">{{ threeds_challenge_indicator.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="emerchantpay_checkout_sca_exemption">
+                  <span data-toggle="tooltip" title="{{ help_sca_exemption }}">
+                    {{ entry_sca_exemption }}
+                  </span>
+                    </label>
+                    <div class="col-sm-10">
+                        <select name="emerchantpay_direct_sca_exemption" id="emerchantpay_direct_sca_exemption" class="form-control">
+                            {% for sca_exemption in sca_exemptions %}
+                                {% set selected = sca_exemption.id == emerchantpay_direct_sca_exemption ? ' selected="selected" ' : '' %}
+                                <option value="{{ sca_exemption.id }}"{{ selected }}>
+                                    {{ sca_exemption.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="input-sca_exemption_amount">
+                      <span data-toggle="tooltip" title="{{ help_sca_exemption_amount }}">
+                        {{ entry_sca_exemption_amount }}
+                      </span>
+                    </label>
+                    <div class="col-sm-10">
+                        <input type="text" name="emerchantpay_direct_sca_exemption_amount" value="{{ emerchantpay_direct_sca_exemption_amount }}" placeholder="{{ entry_sca_exemption_amount }}" id="input-sca_exemption_amount" class="form-control" />
+                    </div>
+                </div>
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">
                   <span data-bs-toggle="tooltip" title="{{ help_supports_partial_capture }}">

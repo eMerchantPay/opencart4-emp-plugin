@@ -248,4 +248,18 @@ class EmerchantpayHelper
 
 		return false;
 	}
+
+	/**
+	 * Return the first ip address from the list
+	 *
+	 * @param string $remote_address
+	 *
+	 * @return string
+	 */
+	public static function getFirstRemoteAddress($remote_address): string
+	{
+		$ips = explode(",", $remote_address);
+
+		return trim($ips[0]);
+	}
 }

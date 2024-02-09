@@ -20,7 +20,10 @@
 namespace Opencart\Catalog\Controller\Extension\Emerchantpay\Payment;
 
 use Genesis\API\Constants\Transaction\States;
+use Genesis\API\Notification;
 use Opencart\Extension\Emerchantpay\System\Catalog\BaseController;
+use Exception;
+use Opencart\System\Engine\Controller;
 
 /**
  * Front-end controller for the "emerchantpay Checkout" module
@@ -96,23 +99,6 @@ class EmerchantpayCheckout extends BaseController
 	}
 
 	/**
-	 * Prepares data for the view when cart content is mixed
-	 *
-	 * @return array
-	 */
-	public function prepareViewDataMixedCart(): array
-	{
-		$data = array(
-			'text_loading'                    => $this->language->get('text_loading'),
-			'text_payment_mixed_cart_content' => $this->language->get('text_payment_mixed_cart_content'),
-			'button_shopping_cart'            => $this->language->get('button_shopping_cart'),
-			'button_target'                   => $this->buildUrl('checkout/cart'),
-		);
-
-		return $data;
-	}
-
-	/**
 	 * Process order confirmation
 	 *
 	 * @return void
@@ -120,137 +106,77 @@ class EmerchantpayCheckout extends BaseController
 	public function send(): void
 	{
 		$this->load->model('checkout/order');
+		$this->load->model('account/order');
+		$this->load->model('account/customer');
 		$this->load->model('extension/emerchantpay/payment/emerchantpay_checkout');
+		$this->load->language('extension/emerchantpay/payment/emerchantpay_checkout');
 
-		if (array_key_exists('order_id', $this->session->data)) {
-			$this->load->language('extension/emerchantpay/payment/emerchantpay_checkout');
+		if (!array_key_exists('order_id', $this->session->data)) {
+			$this->respondWithError('Incorrect call!');
 
-			try {
-				$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-				$product_order_info = $this->model_extension_emerchantpay_payment_emerchantpay_checkout
-					->getDbOrderProducts($this->session->data['order_id']);
-				$order_totals = $this->model_extension_emerchantpay_payment_emerchantpay_checkout
-					->getOrderTotals($this->session->data['order_id']);
-				$product_info = $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getProductsInfo(
-					array_map(
-						function ($value) {
-							return $value['product_id'];
-						},
-						$product_order_info
-					)
-				);
-
-				$data = array(
-					'transaction_id'     => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->genTransactionId(self::PLATFORM_TRANSACTION_PREFIX),
-
-					'remote_address'     => $this->request->server['REMOTE_ADDR'],
-
-					'usage'              => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getUsage(),
-					'description'        => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getOrderProducts(
-						$this->session->data['order_id']
-					),
-
-					'language'           => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getLanguage(),
-
-					'currency'           => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getCurrencyCode(),
-					'amount'             => (float)$order_info['total'],
-
-					'customer_email'     => $order_info['email'],
-					'customer_phone'     => $order_info['telephone'],
-
-					'notification_url'   =>
-						$this->buildUrl(
-							'extension/emerchantpay/payment/emerchantpay_checkout',
-							'callback',
-						),
-					'return_success_url' =>
-						$this->buildUrl(
-							'extension/emerchantpay/payment/emerchantpay_checkout',
-							'success',
-						),
-					'return_failure_url' =>
-						$this->buildUrl(
-							'extension/emerchantpay/payment/emerchantpay_checkout',
-							'failure',
-						),
-					'return_cancel_url'  =>
-						$this->buildUrl(
-							'extension/emerchantpay/payment/emerchantpay_checkout',
-							'cancel',
-						),
-
-					'additional'         => array(
-						'user_id'            => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getCurrentUserId(),
-						'user_hash'          => $this->getCurrentUserIdHash(),
-						'product_order_info' => $product_order_info,
-						'product_info'       => $product_info,
-						'order_totals'       => $order_totals
-					)
-				);
-
-				$this->populateAddresses($order_info, $data);
-
-				$transaction = $this->model_extension_emerchantpay_payment_emerchantpay_checkout->create($data);
-
-				if (isset($transaction->unique_id)) {
-					$timestamp = ($transaction->timestamp instanceof \DateTime) ? $transaction->timestamp->format('c') : $transaction->timestamp;
-
-					$data = array(
-						'type'              => 'checkout',
-						'reference_id'      => '0',
-						'order_id'          => $order_info['order_id'],
-						'unique_id'         => $transaction->unique_id,
-						'status'            => $transaction->status,
-						'amount'            => $transaction->amount,
-						'currency'          => $transaction->currency,
-						'message'           => isset($transaction->message) ? $transaction->message : '',
-						'technical_message' => isset($transaction->technical_message) ? $transaction->technical_message : '',
-						'timestamp'         => $timestamp,
-					);
-
-					$this->model_extension_emerchantpay_payment_emerchantpay_checkout->populateTransaction($data);
-
-					$this->model_checkout_order->addHistory(
-						$this->session->data['order_id'],
-						$this->config->get('emerchantpay_checkout_order_status_id'),
-						$this->language->get('text_payment_status_initiated'),
-						true
-					);
-
-					if ($this->model_extension_emerchantpay_payment_emerchantpay_checkout->isRecurringOrder()) {
-						$this->addOrderRecurring(null); // "checkout" transaction type
-						$this->model_extension_emerchantpay_payment_emerchantpay_checkout->populateRecurringTransaction($data);
-						$this->model_extension_emerchantpay_payment_emerchantpay_checkout->updateOrderRecurring($data);
-					}
-
-					$json = array(
-						'redirect' => $transaction->redirect_url
-					);
-				} else {
-					$json = array(
-						'error' => $this->language->get('text_payment_system_error')
-					);
-				}
-			} catch (\Exception $exception) {
-				$json = array(
-					'error' => ($exception->getMessage()) ? $exception->getMessage() : $this->language->get('text_payment_system_error')
-				);
-
-				$this->model_extension_emerchantpay_payment_emerchantpay_checkout->logEx($exception);
-			}
-		} else {
-			$exception = new \Exception('Incorrect call!');
-			$this->model_extension_emerchantpay_payment_emerchantpay_checkout->logEx($exception);
-			$json = array(
-				'error' => $exception->getMessage()
-			);
+			return;
 		}
 
-		$this->response->addHeader('Content-Type: application/json');
+		try {
+			$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
+			$product_order_info = $this->model_extension_emerchantpay_payment_emerchantpay_checkout
+				->getDbOrderProducts($this->session->data['order_id']);
+			$order_totals = $this->model_extension_emerchantpay_payment_emerchantpay_checkout
+				->getOrderTotals($this->session->data['order_id']);
+			$product_info = $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getProductsInfo(
+				array_map(
+					function ($value) {
+						return $value['product_id'];
+					},
+					$product_order_info
+				)
+			);
 
-		$this->response->setOutput(
-			json_encode($json)
-		);
+			$data = $this->populateTreedsParams($this, $product_info, $order_info);
+			$data += $this->populateCommonData($this->model_extension_emerchantpay_payment_emerchantpay_checkout, $order_info);
+			$data += [
+				'language' => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getLanguage(),
+
+				'additional' => array(
+					'user_id'            => $this->model_extension_emerchantpay_payment_emerchantpay_checkout->getCurrentUserId(),
+					'user_hash'          => $this->getCurrentUserIdHash($this),
+					'product_order_info' => $product_order_info,
+					'product_info'       => $product_info,
+					'order_totals'       => $order_totals
+				),
+			];
+
+			$data += $this->buildActionUrls($this->module_name);
+			$data += [
+				'return_cancel_url'  =>
+					$this->buildUrl(
+						'extension/emerchantpay/payment/emerchantpay_checkout',
+						'cancel'
+					),
+			];
+
+			$this->populateAddresses($order_info, $data);
+
+			$transaction = $this->model_extension_emerchantpay_payment_emerchantpay_checkout->create($data);
+
+			if (isset($transaction->unique_id)) {
+				$this->prepareRedirect($transaction, $order_info);
+
+				$json = array(
+					'redirect' => $transaction->redirect_url
+				);
+			} else {
+				$json = array(
+					'error' => $this->language->get('text_payment_system_error')
+				);
+			}
+
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+		} catch (Exception $exception) {
+			$this->respondWithError(($exception->getMessage()) ?: $this->language->get('text_payment_system_error'));
+			$this->model_extension_emerchantpay_payment_emerchantpay_checkout->logEx($exception);
+		}
 	}
 
 	/**
@@ -268,7 +194,7 @@ class EmerchantpayCheckout extends BaseController
 		try {
 			$this->model_extension_emerchantpay_payment_emerchantpay_checkout->bootstrap();
 
-			$notification = new \Genesis\API\Notification(
+			$notification = new Notification(
 				$this->request->post
 			);
 
@@ -297,9 +223,7 @@ class EmerchantpayCheckout extends BaseController
 
 				if (isset($transaction['order_id']) && abs((int)$transaction['order_id']) > 0) {
 					if (isset($wpf_reconcile->payment_transaction)) {
-
 						$payment_transaction = $this->getPaymentTransaction($wpf_reconcile);
-
 						$timestamp = ($payment_transaction->timestamp instanceof \DateTime) ? $payment_transaction->timestamp->format('c') : $payment_transaction->timestamp;
 
 						$data = array(
@@ -351,12 +275,11 @@ class EmerchantpayCheckout extends BaseController
 				}
 
 				$this->response->addHeader('Content-Type: text/xml');
-
 				$this->response->setOutput(
 					$notification->generateResponse()
 				);
 			}
-		} catch (\Exception $exception) {
+		} catch (Exception $exception) {
 			$this->model_extension_emerchantpay_payment_emerchantpay_checkout->logEx($exception);
 		}
 	}
@@ -414,25 +337,6 @@ class EmerchantpayCheckout extends BaseController
 	}
 
 	/**
-	 * Adds recurring order
-	 *
-	 * @param string $payment_reference
-	 *
-	 * @return void
-	 */
-	public function addOrderRecurring($payment_reference): void
-	{
-		$recurring_products = $this->cart->getRecurringProducts();
-		if (!empty($recurring_products)) {
-			$this->load->model('extension/payment/emerchantpay_checkout');
-			$this->model_extension_emerchantpay_payment_emerchantpay_checkout->addOrderRecurring(
-				$recurring_products,
-				$payment_reference
-			);
-		}
-	}
-
-	/**
 	 * Process the cron if the request is local
 	 *
 	 * @return void
@@ -444,29 +348,16 @@ class EmerchantpayCheckout extends BaseController
 	}
 
 	/**
-	 * Return 0 if guest or customerId if customer is logged on
-	 *
-	 * @return int
-	 */
-	public function getCustomerId(): int
-	{
-		if ($this->customer->isLogged()) {
-			return $this->customer->getId();
-		}
-
-		return 0;
-	}
-
-	/**
 	 * Return logged on customer hash
 	 *
 	 * @param int $length
+	 * @param Controller $controller
 	 *
 	 * @return string
 	 */
-	public function getCurrentUserIdHash($length = 30): string
+	public function getCurrentUserIdHash($controller, $length = 30): string
 	{
-		$user_id = $this->getCustomerId();
+		$user_id = $this->getCustomerId($controller);
 
 		$user_hash = ($user_id > 0) ? sha1($user_id) : $this->model_extension_emerchantpay_payment_emerchantpay_checkout->genTransactionId();
 
@@ -491,5 +382,35 @@ class EmerchantpayCheckout extends BaseController
 		}
 
 		return $wpf_reconcile->payment_transaction;
+	}
+
+	/**
+	 * Prepare params for redirect to WPF
+	 *
+	 * @param $transaction
+	 * @param $order_info
+	 *
+	 * @return void
+	 */
+	private function prepareRedirect($transaction, $order_info)
+	{
+		$model = $this->model_extension_emerchantpay_payment_emerchantpay_checkout;
+
+		$data = $this->populateDataUniqIdTrx($transaction, $order_info);
+
+		$model->populateTransaction($data);
+
+		$this->model_checkout_order->addHistory(
+			$this->session->data['order_id'],
+			$this->config->get('emerchantpay_checkout_order_status_id'),
+			$this->language->get('text_payment_status_initiated'),
+			true
+		);
+
+		if ($model->isRecurringOrder()) {
+			$this->addOrderRecurring(null, $model); // "checkout" transaction type
+			$model->populateRecurringTransaction($data);
+			$model->updateOrderRecurring($data);
+		}
 	}
 }

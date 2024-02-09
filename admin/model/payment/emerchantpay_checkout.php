@@ -30,26 +30,18 @@ use Genesis\API\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as 
 use Genesis\API\Request\Financial\Alternatives\Klarna\Items as KlarnaItems;
 use Genesis\Config;
 use Genesis\Genesis;
+use Opencart\Admin\Model\Extension\Emerchantpay\Payment\emerchantpay\BaseModel;
 use Opencart\Extension\Emerchantpay\System\DbHelper;
 use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
-use Opencart\System\Engine\Model;
 
 /**
  * Backend model for the "emerchantpay Checkout" module
  *
  * @package EMerchantpayCheckout
  */
-class EmerchantpayCheckout extends Model
+class EmerchantpayCheckout extends BaseModel
 {
 	protected $module_name = 'emerchantpay_checkout';
-
-	/**
-	 * Holds the current module version
-	 * Will be displayed on Admin Settings Form
-	 *
-	 * @var string
-	 */
-	protected $module_version = '1.1.3';
 
 	/**
 	 * Perform installation logic
@@ -70,7 +62,7 @@ class EmerchantpayCheckout extends Model
 			  `message` VARCHAR(255) NULL,
 			  `technical_message` VARCHAR(255) NULL,
 			  `terminal_token` VARCHAR(255) NULL,
-			  `amount` DECIMAL( 10, 2 ) DEFAULT NULL,
+			  `amount` DECIMAL( 15, 4 ) DEFAULT NULL,
 			  `currency` CHAR(3) NULL,
 			  PRIMARY KEY (`unique_id`)
 			) ENGINE=InnoDB DEFAULT COLLATE=utf8_general_ci;
@@ -243,7 +235,7 @@ class EmerchantpayCheckout extends Model
 					$this->genTransactionId('ocart-')
 				)
 				->setRemoteIp(
-					$this->request->server['REMOTE_ADDR']
+					EmerchantpayHelper::getFirstRemoteAddress($this->request->server['REMOTE_ADDR'])
 				)
 				->setUsage($usage)
 				->setReferenceId($reference_id)
@@ -292,7 +284,7 @@ class EmerchantpayCheckout extends Model
 					$this->genTransactionId('ocart-')
 				)
 				->setRemoteIp(
-					$this->request->server['REMOTE_ADDR']
+					EmerchantpayHelper::getFirstRemoteAddress($this->request->server['REMOTE_ADDR'])
 				)
 				->setUsage($usage)
 				->setReferenceId($reference_id)
@@ -335,7 +327,7 @@ class EmerchantpayCheckout extends Model
 					$this->genTransactionId('ocart-')
 				)
 				->setRemoteIp(
-					$this->request->server['REMOTE_ADDR']
+					EmerchantpayHelper::getFirstRemoteAddress($this->request->server['REMOTE_ADDR'])
 				)
 				->setUsage($usage)
 				->setReferenceId($reference_id);

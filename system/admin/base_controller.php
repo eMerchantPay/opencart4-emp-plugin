@@ -23,8 +23,12 @@ if (!class_exists('Genesis\Genesis', false)) {
 	require DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
 }
 
+use Exception;
+use Genesis\API\Constants\Transaction\Parameters\ScaExemptions;
 use Genesis\API\Constants\Transaction\States;
 use Genesis\API\Constants\Transaction\Types;
+use Opencart\Extension\Emerchantpay\System\Catalog\SettingsHelper;
+use Opencart\Extension\Emerchantpay\System\Catalog\ThreedsHelper;
 use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
 use Opencart\System\Engine\Controller;
 
@@ -75,7 +79,8 @@ abstract class BaseController extends Controller
 		'transaction_type',
 		'order_status',
 		'order_async_status',
-		'order_failure_status'
+		'order_failure_status',
+		'error_sca_exemption_amount',
 	);
 
 	/**
@@ -89,14 +94,14 @@ abstract class BaseController extends Controller
 	 * BaseController constructor.
 	 * @param $registry
 	 *
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function __construct($registry)
 	{
 		parent::__construct($registry);
 
 		if (is_null($this->module_name)) {
-			throw new \Exception('Module name not supplied in EMerchantPay controller');
+			throw new Exception('Module name not supplied in EMerchantPay controller');
 		}
 	}
 
@@ -109,15 +114,18 @@ abstract class BaseController extends Controller
 	{
 		if ($this->isInstallRequest()) {
 			$this->install();
+
 			return true;
 		} elseif ($this->isUninstallRequest()) {
 			$this->uninstall();
+
 			return true;
 		} elseif ($this->isOrderInfoRequest()) {
 			return $this->orderAction();
 		} else if ($this->isModuleSubActionRequest(['getModalForm', 'capture', 'refund', 'void'])) {
 			$method = $this->request->get['action'];
 			call_user_func(array($this, $method));
+
 			return true;
 		}
 
@@ -200,13 +208,11 @@ abstract class BaseController extends Controller
 				// 2. Sort by relations, i.e. every parent has the child nodes immediately after
 
 				// Ascending Date/Timestamp sorting
-				// TODO Remove @
 				uasort($transactions, function ($element1, $element2) {
-					// sort by timestamp (date) first
-					if (@$element1["timestamp"] == @$element2["timestamp"]) {
-						return 0;
-					}
-					return (@$element1["timestamp"] > @$element2["timestamp"]) ? 1 : -1;
+					$timestamp1 = $element1['timestamp'] ?? null;
+					$timestamp2 = $element2['timestamp'] ?? null;
+
+					return $timestamp1 <=> $timestamp2;
 				});
 
 				// Create the parent/child relations from a flat array
@@ -450,10 +456,8 @@ abstract class BaseController extends Controller
 		if (isset($this->request->post['reference_id']) && trim($this->request->post['reference_id']) != '') {
 			$this->loadPaymentMethodModel();
 
-			$transaction = $this->getModelInstance()->getTransactionById($this->request->post['reference_id']);
-
-			$terminal_token =
-				array_key_exists('terminal_token', $transaction) ? $transaction['terminal_token'] : null;
+			$transaction    = $this->getModelInstance()->getTransactionById($this->request->post['reference_id']);
+			$terminal_token = array_key_exists('terminal_token', $transaction) ? $transaction['terminal_token'] : null;
 
 			if (isset($transaction['order_id']) && intval($transaction['order_id']) > 0) {
 				$amount = $this->request->post['amount'];
@@ -470,8 +474,7 @@ abstract class BaseController extends Controller
 
 				if (isset($refund->unique_id)) {
 					$timestamp = ($refund->timestamp instanceof \DateTime) ? $refund->timestamp->format('c') : $refund->timestamp;
-
-					$data = array(
+					$data      = array(
 						'order_id'          => $transaction['order_id'],
 						'reference_id'      => $transaction['unique_id'],
 						'unique_id'         => $refund->unique_id,
@@ -480,8 +483,8 @@ abstract class BaseController extends Controller
 						'amount'            => $refund->amount,
 						'currency'          => $refund->currency,
 						'timestamp'         => $timestamp,
-						'message'           => isset($refund->message) ? $refund->message : '',
-						'technical_message' => isset($refund->technical_message) ? $refund->technical_message : '',
+						'message'           => $refund->message ?? '',
+						'technical_message' => $refund->technical_message ?? '',
 					);
 
 					if (array_key_exists('terminal_token', $transaction)) {
@@ -542,10 +545,7 @@ abstract class BaseController extends Controller
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
-
-		$this->response->setOutput(
-			json_encode($json)
-		);
+		$this->response->setOutput(json_encode($json));
 	}
 
 	/**
@@ -1051,7 +1051,7 @@ abstract class BaseController extends Controller
 
 			$this->response->addHeader('Content-Type: application/json');
 			$this->response->setOutput(json_encode($json));
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->response->addHeader('HTTP/1.0 500 Internal Server Error');
 		}
 	}
@@ -1080,6 +1080,9 @@ abstract class BaseController extends Controller
 		$this->load->model('localisation/order_status');
 		$this->loadPaymentMethodModel();
 
+		$threedshelper        = new ThreedsHelper();
+		$challenge_indicators = $threedshelper->getThreedsChallengeIndicators();
+
 		$data = $this->buildLanguagePhrases();
 
 		$data += array(
@@ -1090,31 +1093,6 @@ abstract class BaseController extends Controller
 			'recurring_transaction_types'                     => $this->getModelInstance()->getRecurringTransactionTypes(),
 			'error_warning'                                   => isset($this->error['warning']) ? $this->error['warning'] : '',
 			'enable_recurring_tab'                            => true,
-
-			// Settings
-			"{$this->module_name}_username"                   => $this->getFieldValue("{$this->module_name}_username"),
-			"{$this->module_name}_password"                   => $this->getFieldValue("{$this->module_name}_password"),
-			"{$this->module_name}_token"                      => $this->getFieldValue("{$this->module_name}_token"),
-			"{$this->module_name}_sandbox"                    => $this->getFieldValue("{$this->module_name}_sandbox"),
-			"{$this->module_name}_transaction_type"           => $this->getFieldValue("{$this->module_name}_transaction_type"),
-			"{$this->module_name}_wpf_tokenization"           => $this->getFieldValue("{$this->module_name}_wpf_tokenization"),
-			"{$this->module_name}_total"                      => $this->getFieldValue("{$this->module_name}_total"),
-			"{$this->module_name}_order_status_id"            => $this->getFieldValue("{$this->module_name}_order_status_id"),
-			"{$this->module_name}_order_failure_status_id"    => $this->getFieldValue("{$this->module_name}_order_failure_status_id"),
-			"{$this->module_name}_async_order_status_id"      => $this->getFieldValue("{$this->module_name}_async_order_status_id"),
-			"{$this->module_name}_geo_zone_id"                => $this->getFieldValue("{$this->module_name}_geo_zone_id"),
-			"{$this->module_name}_status"                     => $this->getFieldValue("{$this->module_name}_status"),
-			"{$this->module_name}_sort_order"                 => $this->getFieldValue("{$this->module_name}_sort_order"),
-			"{$this->module_name}_debug"                      => $this->getFieldValue("{$this->module_name}_debug"),
-			"{$this->module_name}_supports_partial_capture"   => $this->getFieldValue("{$this->module_name}_supports_partial_capture"),
-			"{$this->module_name}_supports_partial_refund"    => $this->getFieldValue("{$this->module_name}_supports_partial_refund"),
-			"{$this->module_name}_supports_void"              => $this->getFieldValue("{$this->module_name}_supports_void"),
-			"{$this->module_name}_supports_recurring"         => $this->getFieldValue("{$this->module_name}_supports_recurring"),
-			"{$this->module_name}_recurring_transaction_type" => $this->getFieldValue("{$this->module_name}_recurring_transaction_type"),
-			"{$this->module_name}_recurring_token"            => $this->getFieldValue("{$this->module_name}_recurring_token"),
-			"{$this->module_name}_cron_allowed_ip"            => $this->getFieldValue("{$this->module_name}_cron_allowed_ip"),
-			"{$this->module_name}_cron_time_limit"            => $this->getFieldValue("{$this->module_name}_cron_time_limit"),
-			"{$this->module_name}_bank_codes"                 => $this->getFieldValue("{$this->module_name}_bank_codes"),
 
 			'action'      => $this->url->link("{$this->route_prefix}payment/{$this->module_name}", $this->getTokenParam() . '=' . $this->getToken(), true),
 			// TODO I'm not sure if this is used somewhere
@@ -1127,27 +1105,23 @@ abstract class BaseController extends Controller
 			'cron_last_execution'        => $this->getLastCronExecTime(),
 			'cron_last_execution_status' => $this->getCronExecStatus(),
 
-			'module_name' => $this->module_name
+			'module_name'                  => $this->module_name,
+			'threeds_challenge_indicators' => $challenge_indicators,
+			'sca_exemptions'               => $this->getModelInstance()->getScaExemptions()
 		);
+
+		$settings = new SettingsHelper($this);
+
+		$data = array_merge($data, $settings->getBaseSettings($this->module_name));
+		$data = array_merge($data, $settings->getModuleSettings($this->module_name));
 
 		if ($this->module_name == 'emerchantpay_checkout') {
-			$data += ['bank_codes' => $this->getModelInstance()->getBankCodes()];
+			$data += [
+				'bank_codes' => $this->getModelInstance()->getBankCodes(),
+			];
 		}
 
-		$default_param_values = array(
-			"{$this->module_name}_sandbox"                  => 1,
-			"{$this->module_name}_status"                   => 0,
-			"{$this->module_name}_debug"                    => 1,
-			"{$this->module_name}_supports_partial_capture" => 1,
-			"{$this->module_name}_supports_partial_refund"  => 1,
-			"{$this->module_name}_supports_void"            => 1,
-			"{$this->module_name}_supports_recurring"       => 0,
-			"{$this->module_name}_cron_allowed_ip"          => $this->getServerAddress(),
-			"{$this->module_name}_cron_time_limit"          => 25
-		);
-
-		foreach ($default_param_values as $key => $default_value)
-			$data[$key] = (is_null($data[$key]) ? $default_value : $data[$key]);
+		$data = $settings->setDefaultOptions($data, $this->module_name);
 
 		$data['breadcrumbs'] = array();
 
@@ -1218,6 +1192,10 @@ abstract class BaseController extends Controller
 			'entry_cron_allowed_ip',
 			'entry_cron_last_execution',
 			'entry_bank_codes',
+			'entry_threeds_allowed',
+			'entry_threeds_challenge_indicator',
+			'entry_sca_exemption',
+			'entry_sca_exemption_value',
 
 			'entry_order_status',
 			'entry_async_order_status',
@@ -1246,6 +1224,10 @@ abstract class BaseController extends Controller
 			'help_cron_time_limit',
 			'help_cron_allowed_ip',
 			'help_cron_last_execution',
+			'help_threeds_allowed',
+			'help_threeds_challenge_indicator',
+			'help_sca_exemption',
+			'help_sca_exemption_value',
 
 			'button_save',
 			'button_cancel',
@@ -1276,51 +1258,17 @@ abstract class BaseController extends Controller
 	 */
 	protected function validate(): bool
 	{
+		$this->validateRequiredFields();
+
 		if (!$this->user->hasPermission('modify', "{$this->route_prefix}payment/{$this->module_name}")) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
-		if (empty($this->request->post["{$this->module_name}_username"])) {
-			$this->error['username'] = $this->language->get('error_username');
-		}
-
-		if (empty($this->request->post["{$this->module_name}_password"])) {
-			$this->error['password'] = $this->language->get('error_password');
-		}
-
-		if (empty($this->request->post["{$this->module_name}_transaction_type"])) {
-			$this->error['transaction_type'] = $this->language->get('error_transaction_type');
-		}
-
-		if (empty($this->request->post["{$this->module_name}_order_status_id"])) {
-			$this->error['order_status'] = $this->language->get('error_order_status');
-		}
-
-		if (empty($this->request->post["{$this->module_name}_order_failure_status_id"])) {
-			$this->error['order_failure_status'] = $this->language->get('error_order_failure_status');
-		}
-
-		if ($this->module_name === 'emerchantpay_direct' && empty($this->request->post["{$this->module_name}_async_order_status_id"])) {
-			$this->error['order_async_status'] = $this->language->get('error_async_order_status');
+		if ((float)$this->request->post["{$this->module_name}_sca_exemption_amount"] < 0) {
+			$this->error['error_sca_exemption_amount'] = $this->language->get('error_sca_exemption_amount');
 		}
 
 		return !$this->error;
-	}
-
-	/**
-	 * Check if there's a POST parameter or use the existing configuration value
-	 *
-	 * @param $key string
-	 *
-	 * @return mixed
-	 */
-	protected function getFieldValue($key): mixed
-	{
-		if (isset($this->request->post[$key])) {
-			return $this->request->post[$key];
-		}
-
-		return $this->config->get($key);
 	}
 
 	/**
@@ -1601,20 +1549,6 @@ abstract class BaseController extends Controller
 	}
 
 	/**
-	 * @return string
-	 */
-	protected function getServerAddress(): string
-	{
-		$server_name = $this->request->server['SERVER_NAME'];
-
-		if (empty($server_name) || !function_exists('gethostbyname')) {
-			return $this->request->server['SERVER_ADDR'];
-		}
-
-		return gethostbyname($server_name);
-	}
-
-	/**
 	 * Determine if Google Pay, PayPal ot Apple Pay Method is chosen inside the Payment settings
 	 *
 	 * @param string $transaction_type GooglePay or PayPal Method
@@ -1706,8 +1640,6 @@ abstract class BaseController extends Controller
 			default:
 				return false;
 		} // end Switch
-
-		return false;
 	}
 
 	/**
@@ -1726,5 +1658,31 @@ abstract class BaseController extends Controller
 		$state = new States($transaction_type);
 
 		return $state->isApproved();
+	}
+
+	/**
+	 * Check if any of the required fields is empty
+	 *
+	 * @return void
+	 */
+	private function validateRequiredFields(): void
+	{
+		$required_fields = [
+			"{$this->module_name}_username"                => 'username',
+			"{$this->module_name}_password"                => 'password',
+			"{$this->module_name}_transaction_type"        => 'transaction_type',
+			"{$this->module_name}_order_status_id"         => 'order_status',
+			"{$this->module_name}_order_failure_status_id" => 'order_failure_status',
+		];
+
+		if ($this->module_name === 'emerchantpay_direct') {
+			$required_fields["{$this->module_name}_async_order_status_id"] = 'order_async_status';
+		}
+
+		foreach ($required_fields as $field => $error_key) {
+			if (empty($this->request->post[$field])) {
+				$this->error[$error_key] = $this->language->get("error_$error_key");
+			}
+		}
 	}
 }

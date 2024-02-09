@@ -61,6 +61,10 @@ $_['entry_recurring_token']             = 'Recurring Token';
 $_['entry_cron_time_limit']             = 'Processing time for re-billing';
 $_['entry_cron_allowed_ip']             = 'IP address';
 $_['entry_cron_last_execution']         = 'Cron/schtasks last execution';
+$_['entry_threeds_allowed']             = 'Enable 3DSv2';
+$_['entry_threeds_challenge_indicator'] = '3DSv2 Challenge';
+$_['entry_sca_exemption']               = 'SCA Exemption';
+$_['entry_sca_exemption_amount']        = 'Exemption Amount';
 
 // Transaction Types
 //$_ = array_merge($_, EmerchantpayHelper::getTransactionTypeNames());
@@ -138,6 +142,10 @@ $_['help_recurring_log']                             = "This is a log of the re-
 $_['help_cron_time_limit']                           = 'Тhe total time in seconds allowed for re-billing recurring orders in a single execution of the cron / schtasks. If there is a re-billing in process while reaching this limit, it will try to continue and respectively the actual the execution time will exceed the allowed time.';
 $_['help_cron_allowed_ip']                           = 'The IP address allowed to send HTTP requests to the cron-handling URLs.';
 $_['help_cron_last_execution']                       = 'The time the cron / schtasks was last executed.';
+$_['help_threeds_allowed']                           = 'Enable 3DSv2 optional parameters.';
+$_['help_threeds_challenge_indicator']               = 'The value has weight and might impact the decision whether a challenge will be required for the transaction or not.';
+$_['help_sca_exemption']                             = 'Exemption for the Strong Customer Authentication.';
+$_['help_sca_exemption_amount']                      = 'Exemption Amount determinate if the SCA Exemption should be included in the request to the Gateway.';
 
 // Error
 $_['error_permission']           = 'Warning: You do not have permission to modify payment module emerchantpay!';
@@ -150,6 +158,7 @@ $_['error_controls_invalidated'] = 'Warning: You have to fill-in all the require
 $_['error_order_status']         = 'Order Status is Required';
 $_['error_order_failure_status'] = 'Order Status (Failed) is Required';
 $_['error_async_order_status']   = 'Order Status (Async) is Required';
+$_['error_sca_exemption_amount'] = 'SCA Exemption amount must have positive value';
 
 //Alert
 $_['alert_disable_recurring']    = 'Warning: Disabling the Recurring Payments disables placing new recurring orders. It does not disable the re-billing of the existing ones.';

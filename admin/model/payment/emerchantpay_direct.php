@@ -25,26 +25,18 @@ use Genesis\API\Constants\Transaction\Names;
 use Genesis\API\Constants\Transaction\Types;
 use Genesis\Config;
 use Genesis\Genesis;
+use Opencart\Admin\Model\Extension\Emerchantpay\Payment\emerchantpay\BaseModel;
 use Opencart\Extension\Emerchantpay\System\DbHelper;
 use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
-use Opencart\System\Engine\Model;
 
 /**
  * Backend model for the "emerchantpay Direct" module
  *
  * @package EMerchantpayDirect
  */
-class EmerchantpayDirect extends Model
+class EmerchantpayDirect extends BaseModel
 {
 	protected $module_name = "emerchantpay_direct";
-
-	/**
-	 * Holds the current module version
-	 * Will be displayed on Admin Settings Form
-	 *
-	 * @var string
-	 */
-	protected $module_version = '1.1.3';
 
 	/**
 	 * Perform installation logic
@@ -64,7 +56,7 @@ class EmerchantpayDirect extends Model
 			  `status` CHAR(32) NOT NULL,
 			  `message` VARCHAR(255) NULL,
 			  `technical_message` VARCHAR(255) NULL,
-			  `amount` DECIMAL( 10, 2 ) DEFAULT NULL,
+			  `amount` DECIMAL( 15, 4 ) DEFAULT NULL,
 			  `currency` CHAR(3) NULL,
 			  PRIMARY KEY (`unique_id`)
 			) ENGINE=InnoDB DEFAULT COLLATE=utf8_general_ci;
@@ -224,7 +216,7 @@ class EmerchantpayDirect extends Model
 					$this->genTransactionId('ocart-')
 				)
 				->setRemoteIp(
-					$this->request->server['REMOTE_ADDR']
+					EmerchantpayHelper::getFirstRemoteAddress($this->request->server['REMOTE_ADDR'])
 				)
 				->setUsage($usage)
 				->setReferenceId($reference_id)
@@ -266,7 +258,7 @@ class EmerchantpayDirect extends Model
 					$this->genTransactionId('ocart-')
 				)
 				->setRemoteIp(
-					$this->request->server['REMOTE_ADDR']
+					EmerchantpayHelper::getFirstRemoteAddress($this->request->server['REMOTE_ADDR'])
 				)
 				->setUsage($usage)
 				->setReferenceId($reference_id)
@@ -304,7 +296,7 @@ class EmerchantpayDirect extends Model
 					$this->genTransactionId('ocart-')
 				)
 				->setRemoteIp(
-					$this->request->server['REMOTE_ADDR']
+					EmerchantpayHelper::getFirstRemoteAddress($this->request->server['REMOTE_ADDR'])
 				)
 				->setUsage($usage)
 				->setReferenceId($reference_id);

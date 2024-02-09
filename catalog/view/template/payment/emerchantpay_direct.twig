@@ -49,6 +49,13 @@
             </div>
         </div>
     </fieldset>
+    <input type="hidden" id="emerchantpay_direct-java_enabled" name="emerchantpay_direct-java_enabled">
+    <input type="hidden" id="emerchantpay_direct-color_depth" name="emerchantpay_direct-color_depth">
+    <input type="hidden" id="emerchantpay_direct-browser_language" name="emerchantpay_direct-browser_language">
+    <input type="hidden" id="emerchantpay_direct-screen_height" name="emerchantpay_direct-screen_height">
+    <input type="hidden" id="emerchantpay_direct-screen_width" name="emerchantpay_direct-screen_width">
+    <input type="hidden" id="emerchantpay_direct-user_agent" name="emerchantpay_direct-user_agent">
+    <input type="hidden" id="emerchantpay_direct-browser_timezone_zone_offset" name="emerchantpay_direct-browser_timezone_zone_offset">
 </form>
 
 <div class="buttons">
@@ -105,4 +112,6 @@
             });
         });
     });
+
+    empPopulateBrowserParams.execute(document);
 </script>

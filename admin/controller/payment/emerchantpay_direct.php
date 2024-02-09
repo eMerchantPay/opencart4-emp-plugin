@@ -66,7 +66,7 @@ class EmerchantpayDirect extends BaseController
 	{
 		parent::validate();
 
-		if (@empty($this->request->post["{$this->module_name}_token"])) {
+		if (empty($this->request->post["{$this->module_name}_token"])) {
 			$this->error['token'] = $this->language->get('error_token');
 		}
 

@@ -21,6 +21,8 @@ namespace Opencart\Catalog\Model\Extension\Emerchantpay\Payment;
 
 use Genesis\API\Constants\Endpoints;
 use Genesis\API\Constants\Environments;
+use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\Control\ChallengeWindowSizes;
+use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\Control\DeviceTypes;
 use Genesis\API\Constants\Transaction\Types;
 use Genesis\Config;
 use Genesis\Exceptions\ErrorAPI;
@@ -69,6 +71,7 @@ class EmerchantpayDirect extends BaseModel
 		$method_data = array();
 
 		if ($status) {
+			$option_data = array();
 			$option_data['emerchantpay_direct'] = [
 				'code' => 'emerchantpay_direct.emerchantpay_direct',
 				'name' => $this->language->get('text_title')
@@ -165,6 +168,11 @@ class EmerchantpayDirect extends BaseModel
 					->setNotificationUrl($data['notification_url'])
 					->setReturnSuccessUrl($data['return_success_url'])
 					->setReturnFailureUrl($data['return_failure_url']);
+			}
+
+			if ($this->isThreedsAllowed()) {
+				$this->addThreedsParamsToRequest($genesis, $data);
+				$this->addThreedsBrowserParamsToRequest($genesis, $data);
 			}
 
 			$genesis->execute();
@@ -285,5 +293,32 @@ class EmerchantpayDirect extends BaseModel
 	public function getUsage(): string
 	{
 		return sprintf('%s direct transaction', $this->config->get('config_name'));
+	}
+
+	/**
+	 * Append 3DSv2 browser parameters to the Genesis Request
+	 *
+	 * @param $genesis
+	 * @param $data
+	 *
+	 * @return void
+	 */
+	protected function addThreedsBrowserParamsToRequest($genesis, $data): void
+	{
+		$http_accept = $this->request->server['HTTP_ACCEPT'] ?? null;
+
+		/** @var Create $request */
+		$request = $genesis->request();
+		$request
+			->setThreedsV2ControlDeviceType(DeviceTypes::BROWSER)
+			->setThreedsV2ControlChallengeWindowSize(ChallengeWindowSizes::FULLSCREEN)
+			->setThreedsV2BrowserAcceptHeader($http_accept)
+			->setThreedsV2BrowserJavaEnabled($data['browser_data'][self::THREEDS_V2_JAVA_ENABLED])
+			->setThreedsV2BrowserLanguage($data['browser_data'][self::THREEDS_V2_BROWSER_LANGUAGE])
+			->setThreedsV2BrowserColorDepth($data['browser_data'][self::THREEDS_V2_COLOR_DEPTH])
+			->setThreedsV2BrowserScreenHeight($data['browser_data'][self::THREEDS_V2_SCREEN_HEIGHT])
+			->setThreedsV2BrowserScreenWidth($data['browser_data'][self::THREEDS_V2_SCREEN_WIDTH])
+			->setThreedsV2BrowserTimeZoneOffset($data['browser_data'][self::THREEDS_V2_BROWSER_TIMEZONE_ZONE_OFFSET])
+			->setThreedsV2BrowserUserAgent($data['browser_data'][self::THREEDS_V2_USER_AGENT]);
 	}
 }

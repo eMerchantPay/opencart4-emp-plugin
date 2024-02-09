@@ -46,6 +46,11 @@ class EmerchantpayCheckout extends BaseModel
 	protected $module_name = 'emerchantpay_checkout';
 
 	/**
+	 * Module Code used in the payment process
+	 */
+	const METHOD_CODE = 'emerchantpay_checkout.emerchantpay_checkout';
+
+	/**
 	 * Main method
 	 *
 	 * @param $address //Order Address
@@ -68,8 +73,9 @@ class EmerchantpayCheckout extends BaseModel
 		$method_data = array();
 
 		if ($status) {
+			$option_data = array();
 			$option_data['emerchantpay_checkout'] = [
-				'code' => 'emerchantpay_checkout.emerchantpay_checkout',
+				'code' => self::METHOD_CODE,
 				'name' => $this->language->get('text_title')
 			];
 
@@ -206,6 +212,10 @@ class EmerchantpayCheckout extends BaseModel
 				$this->prepareWpfRequestTokenization($genesis);
 			}
 
+			if ($this->isThreedsAllowed()) {
+				$this->addThreedsParamsToRequest($genesis, $data);
+			}
+
 			$genesis->execute();
 
 			$this->saveWpfTokenizationData($genesis);
@@ -296,20 +306,6 @@ class EmerchantpayCheckout extends BaseModel
 	}
 
 	/**
-	 * Get the Order Products stored in the Database
-	 *
-	 * @param $order_id
-	 *
-	 * @return mixed
-	 */
-	public function getDbOrderProducts($order_id): mixed
-	{
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product	WHERE order_id = '" . (int)$order_id . "'");
-
-		return $query->rows;
-	}
-
-	/**
 	 * Get the Order Totals stored in the Database
 	 *
 	 * @param $order_id
@@ -321,25 +317,6 @@ class EmerchantpayCheckout extends BaseModel
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_total WHERE	order_id = '" . (int)$order_id . "' ORDER BY sort_order");
 
 		return $query->rows;
-	}
-
-	/**
-	 * Get Products Information
-	 *
-	 * @param array $products
-	 *
-	 * @return mixed
-	 */
-	public function getProductsInfo($products = array()): mixed
-	{
-		$ids = array();
-		foreach ($products as $product) {
-			array_push($ids, abs((int)$product));
-		}
-
-		$products_resource = $this->db->query("SELECT *	FROM " . DB_PREFIX . "product WHERE product_id IN (" . implode(', ', $ids) . ")");
-
-		return $products_resource->rows;
 	}
 
 	/**
@@ -528,6 +505,26 @@ class EmerchantpayCheckout extends BaseModel
 	}
 
 	/**
+	 * Get the current front-end language
+	 *
+	 * @return string
+	 */
+	public function getLanguage(): string
+	{
+		$language = isset($this->session->data['language']) ? $this->session->data['language'] : $this->config->get('config_language');
+		$language_code = substr($language, 0, 2);
+
+		$this->bootstrap();
+
+		$constant_name = '\Genesis\API\Constants\i18n::' . strtoupper($language_code);
+		if (defined($constant_name) && constant($constant_name)) {
+			return strtolower($language_code);
+		}
+
+		return 'en';
+	}
+
+	/**
 	 * @param string $email
 	 *
 	 * @return null|string
@@ -640,7 +637,7 @@ class EmerchantpayCheckout extends BaseModel
 	 */
 	private function orderCardTransactionTypes($selected_types)
 	{
-		$custom_order = \Genesis\API\Constants\Transaction\Types::getCardTransactionTypes();
+		$custom_order = Types::getCardTransactionTypes();
 
 		asort($selected_types);
 

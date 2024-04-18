@@ -40,8 +40,7 @@ class DbHelper
 
 	private Model $model;
 
-	public function __construct(string $module_name, Model $model)
-	{
+	public function __construct(string $module_name, Model $model) {
 		$this->module_name = $module_name;
 		$this->model = $model;
 	}
@@ -56,8 +55,7 @@ class DbHelper
 	 *
 	 * @return void
 	 */
-	public function populateTransaction($data): void
-	{
+	public function populateTransaction($data): void {
 		try {
 			$data = $this->sanitizeData($data);
 
@@ -84,8 +82,7 @@ class DbHelper
 	 *
 	 * @return void
 	 */
-	public function logEx($exception): void
-	{
+	public function logEx($exception): void {
 		if ($this->model->config->get($this->module_name . '_debug')) {
 			$log = new Log($this->module_name . '.log');
 			$log->write($this->jTraceEx($exception));
@@ -99,8 +96,7 @@ class DbHelper
 	 *
 	 * @return array
 	 */
-	protected function sanitizeData($data): array
-	{
+	protected function sanitizeData($data): array {
 		$self = $this->model;
 		$result = array();
 
@@ -118,8 +114,7 @@ class DbHelper
 	 *
 	 * @return void
 	 */
-	protected function addTransaction($data): void
-	{
+	protected function addTransaction($data): void {
 		try {
 			$fields = implode(', ', array_map(
 					function ($value, $key) {
@@ -155,8 +150,7 @@ class DbHelper
 	 *
 	 * @return void
 	 */
-	protected function updateTransaction($data): void
-	{
+	protected function updateTransaction($data): void {
 		try {
 			$fields = implode(', ', array_map(
 					function ($value, $key) {
@@ -188,8 +182,7 @@ class DbHelper
 	 *
 	 * @SuppressWarnings(PHPMD)
 	 */
-	private function jTraceEx($exception, $seen = null): string
-	{
+	private function jTraceEx($exception, $seen = null): string {
 		$starter = ($seen) ? 'Caused by: ' : '';
 		$result = array();
 

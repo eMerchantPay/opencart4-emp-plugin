@@ -45,8 +45,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @param $registry
 	 */
-	public function __construct($registry)
-	{
+	public function __construct($registry) {
 		parent::__construct($registry);
 	}
 
@@ -55,8 +54,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return mixed
 	 */
-	public function index(): mixed
-	{
+	public function index(): mixed {
 		$this->load->language('extension/emerchantpay/payment/emerchantpay_checkout');
 		$this->load->model('extension/emerchantpay/payment/emerchantpay_checkout');
 		$this->document->addStyle(HTTP_SERVER . '/extension/emerchantpay/catalog/view/stylesheet/emerchantpay/emerchantpay.css');
@@ -79,8 +77,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return array
 	 */
-	public function prepareViewData(): array
-	{
+	public function prepareViewData(): array {
 		$data = array(
 			'text_title'     => $this->language->get('text_title'),
 			'text_loading'   => $this->language->get('text_loading'),
@@ -103,8 +100,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return void
 	 */
-	public function send(): void
-	{
+	public function send(): void {
 		$this->load->model('checkout/order');
 		$this->load->model('account/order');
 		$this->load->model('account/customer');
@@ -184,8 +180,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return void
 	 */
-	public function callback(): void
-	{
+	public function callback(): void {
 		$this->load->model('checkout/order');
 		$this->load->model('extension/emerchantpay/payment/emerchantpay_checkout');
 
@@ -289,8 +284,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return void
 	 */
-	public function success(): void
-	{
+	public function success(): void {
 		$this->response->redirect($this->buildUrl('checkout/success'));
 	}
 
@@ -299,8 +293,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return void
 	 */
-	public function failure(): void
-	{
+	public function failure(): void {
 		$this->load->language('extension/emerchantpay/payment/emerchantpay_checkout');
 
 		$this->session->data['error'] = $this->language->get('text_payment_failure');
@@ -313,8 +306,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return void
 	 */
-	public function cancel(): void
-	{
+	public function cancel(): void {
 		$this->load->language('extension/emerchantpay/payment/emerchantpay_checkout');
 
 		$this->session->data['error'] = $this->language->get('text_payment_cancelled');
@@ -327,8 +319,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return void
 	 */
-	protected function isUserLoggedIn(): void
-	{
+	protected function isUserLoggedIn(): void {
 		$is_callback = strpos((string)$this->request->get['route'], 'callback') !== false;
 
 		if (!$this->customer->isLogged() && !$is_callback) {
@@ -341,8 +332,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return void
 	 */
-	public function cron(): void
-	{
+	public function cron(): void {
 		$this->load->model('extension/payment/emerchantpay_checkout');
 		$this->model_extension_emerchantpay_payment_emerchantpay_checkout->processRecurringOrders();
 	}
@@ -355,8 +345,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return string
 	 */
-	public function getCurrentUserIdHash($controller, $length = 30): string
-	{
+	public function getCurrentUserIdHash($controller, $length = 30): string {
 		$user_id = $this->getCustomerId($controller);
 
 		$user_hash = ($user_id > 0) ? sha1($user_id) : $this->model_extension_emerchantpay_payment_emerchantpay_checkout->genTransactionId();
@@ -371,8 +360,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return \StdClass
 	 */
-	private function getPaymentTransaction($wpf_reconcile): \StdClass
-	{
+	private function getPaymentTransaction($wpf_reconcile): \StdClass {
 		if (!isset($wpf_reconcile->payment_transaction)) {
 			return $wpf_reconcile;
 		}
@@ -392,8 +380,7 @@ class EmerchantpayCheckout extends BaseController
 	 *
 	 * @return void
 	 */
-	private function prepareRedirect($transaction, $order_info)
-	{
+	private function prepareRedirect($transaction, $order_info) {
 		$model = $this->model_extension_emerchantpay_payment_emerchantpay_checkout;
 
 		$data = $this->populateDataUniqIdTrx($transaction, $order_info);

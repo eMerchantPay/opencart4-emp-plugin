@@ -71,8 +71,7 @@ class ThreedsHelper
 	 * @param array $products
 	 * @return bool
 	 */
-	public function hasPhysicalProduct($products)
-	{
+	public function hasPhysicalProduct($products) {
 		return in_array(
 			BaseModel::OC_TAX_CLASS_PHYSICAL_PRODUCT,
 			array_column(
@@ -91,8 +90,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	public function getShippingIndicator($has_physical_products, $order_info, $is_guest)
-	{
+	public function getShippingIndicator($has_physical_products, $order_info, $is_guest) {
 		$indicator = ShippingIndicators::OTHER;
 
 		if (!$has_physical_products) {
@@ -119,8 +117,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	public function getReorderItemsIndicator($model, $is_quest, $product_info, $customer_orders)
-	{
+	public function getReorderItemsIndicator($model, $is_quest, $product_info, $customer_orders) {
 		if ($is_quest) {
 			return ReorderItemIndicators::FIRST_TIME;
 		}
@@ -144,8 +141,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	public function getShippingAddressUsageIndicator($date)
-	{
+	public function getShippingAddressUsageIndicator($date) {
 		return $this->getIndicatorValue($date, ShippingAddressUsageIndicators::class);
 	}
 
@@ -156,8 +152,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	public function getRegistrationIndicator($order_date)
-	{
+	public function getRegistrationIndicator($order_date) {
 		return $this->getIndicatorValue($order_date, RegistrationIndicators::class);
 	}
 
@@ -168,8 +163,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	public function findFirstCustomerOrderDate($customer_orders)
-	{
+	public function findFirstCustomerOrderDate($customer_orders) {
 		$order_date = (new DateTime())->format(self::OC_DATETIME_FORMAT);
 
 		if (CommonUtils::isValidArray($customer_orders)) {
@@ -187,8 +181,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	public function getCreationDate($model, $customer_id)
-	{
+	public function getCreationDate($model, $customer_id) {
 		$customer = $model->getCustomer($customer_id);
 
 		return $customer['date_added'];
@@ -202,8 +195,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	public function findShippingAddressDateFirstUsed($model, $order_info, $customer_orders)
-	{
+	public function findShippingAddressDateFirstUsed($model, $order_info, $customer_orders) {
 		$cart_shipping_address = [
 			$order_info['shipping_firstname'],
 			$order_info['shipping_lastname'],
@@ -247,8 +239,7 @@ class ThreedsHelper
 	 *
 	 * @throws Exception
 	 */
-	public function findNumberOfOrdersForaPeriod($model, $customer_orders)
-	{
+	public function findNumberOfOrdersForaPeriod($model, $customer_orders) {
 		$customer_orders      = array_reverse($customer_orders);
 		$start_date_last_24h  = (new DateTime())->sub(new DateInterval(self::ACTIVITY_24_HOURS));
 		$start_date_last_6m   = (new DateTime())->sub(new DateInterval(self::ACTIVITY_6_MONTHS));
@@ -301,8 +292,7 @@ class ThreedsHelper
 	 *
 	 * @return array
 	 */
-	public static function getCustomerOrders($db_obj, $customer_id, $store_id, $language_id, $payment_code)
-	{
+	public static function getCustomerOrders($db_obj, $customer_id, $store_id, $language_id, $payment_code) {
 		$raw_query = sprintf("
 			SELECT
 				o.order_id,
@@ -341,8 +331,7 @@ class ThreedsHelper
 	 *
 	 * @return array
 	 */
-	public function getThreedsChallengeIndicators()
-	{
+	public function getThreedsChallengeIndicators() {
 		$data                 = [];
 		$challenge_indicators = [
 			ChallengeIndicators::NO_PREFERENCE          => 'No preference',
@@ -368,8 +357,7 @@ class ThreedsHelper
 	 *
 	 * @return bool
 	 */
-	private function areAddressesSame($order_info)
-	{
+	private function areAddressesSame($order_info) {
 		$shipping = [
 			$order_info['shipping_firstname'],
 			$order_info['shipping_lastname'],
@@ -403,8 +391,7 @@ class ThreedsHelper
 	 *
 	 * @return array
 	 */
-	private function getBoughtProducts($model, $customer_orders)
-	{
+	private function getBoughtProducts($model, $customer_orders) {
 		$bought_products = [];
 		$order_ids       = array_column($customer_orders, 'order_id');
 
@@ -424,8 +411,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	private function getIndicatorValue($date, $indicator_class)
-	{
+	private function getIndicatorValue($date, $indicator_class) {
 		switch ($this->getDateIndicator($date)) {
 			case static::LESS_THAN_30_DAYS_INDICATOR:
 				return $indicator_class::LESS_THAN_30DAYS;
@@ -445,8 +431,7 @@ class ThreedsHelper
 	 *
 	 * @return string
 	 */
-	private function getDateIndicator($date)
-	{
+	private function getDateIndicator($date) {
 		$now        = new DateTime();
 		$check_date = DateTime::createFromFormat(self::OC_DATETIME_FORMAT, $date);
 		$days       = $check_date->diff($now)->days;

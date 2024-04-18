@@ -96,8 +96,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @throws Exception
 	 */
-	public function __construct($registry)
-	{
+	public function __construct($registry) {
 		parent::__construct($registry);
 
 		if (is_null($this->module_name)) {
@@ -110,8 +109,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return mixed|void
 	 */
-	public function index()
-	{
+	public function index() {
 		if ($this->isInstallRequest()) {
 			$this->install();
 
@@ -144,8 +142,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	public function getToken(): string
-	{
+	public function getToken(): string {
 		return $this->session->data['user_token'];
 	}
 
@@ -154,8 +151,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	public function getTokenParam(): string
-	{
+	public function getTokenParam(): string {
 		return 'user_token';
 	}
 
@@ -164,8 +160,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return mixed
 	 */
-	public function order()
-	{
+	public function order() {
 		if ($this->config->get("{$this->module_name}_status")) {
 
 			$this->loadLanguage();
@@ -284,8 +279,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	public function getModalForm(): void
-	{
+	public function getModalForm(): void {
 		if (isset($this->request->post['reference_id']) && isset($this->request->post['type'])) {
 			$this->loadLanguage();
 			$this->loadPaymentMethodModel();
@@ -364,8 +358,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	public function capture(): void
-	{
+	public function capture(): void {
 		$this->loadLanguage();
 
 		if (isset($this->request->post['reference_id']) && trim($this->request->post['reference_id']) != '') {
@@ -449,8 +442,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	public function refund(): void
-	{
+	public function refund(): void {
 		$this->loadLanguage();
 
 		if (isset($this->request->post['reference_id']) && trim($this->request->post['reference_id']) != '') {
@@ -553,8 +545,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	public function void(): void
-	{
+	public function void(): void {
 		$this->loadLanguage();
 
 		if (isset($this->request->post['reference_id']) && trim($this->request->post['reference_id']) != '') {
@@ -633,8 +624,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	public function install(): void
-	{
+	public function install(): void {
 		$this->loadPaymentMethodModel();
 		$this->getModelInstance()->install();
 	}
@@ -644,8 +634,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	public function uninstall(): void
-	{
+	public function uninstall(): void {
 		$this->loadPaymentMethodModel();
 		$this->getModelInstance()->uninstall();
 	}
@@ -655,8 +644,7 @@ abstract class BaseController extends Controller
 	 * @param array $data
 	 * @return bool
 	 */
-	public function cancelOrderRecurring($data): bool
-	{
+	public function cancelOrderRecurring($data): bool {
 		$recurring_status = 3; //Cancelled
 
 		$order_recurring_id = $this->getOrderRecurringId($data['order_id']);
@@ -671,8 +659,7 @@ abstract class BaseController extends Controller
 	 * @param string $order_id
 	 * @return string
 	 */
-	public function getOrderRecurringId($order_id): string
-	{
+	public function getOrderRecurringId($order_id): string {
 		$query = $this->db->query("SELECT order_recurring_id FROM `" . DB_PREFIX . "order_recurring` WHERE order_id = '" . (int)$order_id . "'");
 
 		return $query->row['order_recurring_id'];
@@ -685,8 +672,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	public function isInitialRecurringTransaction($transaction_type): bool
-	{
+	public function isInitialRecurringTransaction($transaction_type): bool {
 		return in_array($transaction_type, array(
 			Types::INIT_RECURRING_SALE,
 			Types::INIT_RECURRING_SALE_3D
@@ -701,8 +687,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	public function addRecurringTransaction($data, $oc_txn_type): bool
-	{
+	public function addRecurringTransaction($data, $oc_txn_type): bool {
 		$result = false;
 
 		if (!array_key_exists('order_recurring_id', $data)) {
@@ -725,8 +710,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	public function updateOrder($order_id, $order_status_id, $comment = '', $notify = false): bool
-	{
+	public function updateOrder($order_id, $order_status_id, $comment = '', $notify = false): bool {
 		$result = $this->db->query("UPDATE `" . DB_PREFIX . "order` SET order_status_id = '" . (int)$order_status_id . "', date_modified = NOW() WHERE order_id = '" . (int)$order_id . "'");
 		if ($result) {
 			$result = $this->db->query("INSERT INTO " . DB_PREFIX . "order_history SET order_id = '" . (int)$order_id . "', order_status_id = '" . (int)$order_status_id . "', notify = '" . (int)$notify . "', comment = '" . $this->db->escape($comment) . "', date_added = NOW()");
@@ -742,8 +726,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	public function canCaptureTransaction($transaction): bool
-	{
+	public function canCaptureTransaction($transaction): bool {
 		if (!$this->hasApprovedState($transaction['status'])) {
 			return false;
 		}
@@ -765,8 +748,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	public function canRefundTransaction($transaction): bool
-	{
+	public function canRefundTransaction($transaction): bool {
 		if (!$this->hasApprovedState($transaction['status'])) {
 			return false;
 		}
@@ -788,8 +770,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	public function canVoidTransaction($transaction): bool
-	{
+	public function canVoidTransaction($transaction): bool {
 		return Types::canVoid($transaction['type']) &&
 			$this->hasApprovedState($transaction['status']);
 	}
@@ -802,8 +783,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	public function isVoidTransactionExist($order_id, $transaction): bool
-	{
+	public function isVoidTransactionExist($order_id, $transaction): bool {
 		return $this->getModelInstance()->getTransactionsByTypeAndStatus(
 				$order_id,
 				$transaction['unique_id'],
@@ -830,8 +810,7 @@ abstract class BaseController extends Controller
 	 * order_recurring_btn_title
 	 * status
 	 */
-	public function getRecurringLog(): array
-	{
+	public function getRecurringLog(): array {
 		$result = array();
 
 		$query = $this->db->query('SELECT *, ort.`date_added` as `transaction_date` FROM `' . DB_PREFIX . $this->module_name . '_cronlog` '
@@ -931,8 +910,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function isOrderInfoRequest(): bool
-	{
+	protected function isOrderInfoRequest(): bool {
 		return
 			($this->request->server['REQUEST_METHOD'] == 'GET') &&
 			($this->request->get['route'] == 'sale/order/info');
@@ -943,8 +921,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function isInstallRequest(): bool
-	{
+	protected function isInstallRequest(): bool {
 		return
 			($this->request->server['REQUEST_METHOD'] == 'GET') &&
 			($this->request->get['route'] == 'extension/extension/payment/install');
@@ -955,8 +932,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function isUninstallRequest(): bool
-	{
+	protected function isUninstallRequest(): bool {
 		return
 			($this->request->server['REQUEST_METHOD'] == 'GET') &&
 			($this->request->get['route'] == 'extension/extension/payment/uninstall');
@@ -970,8 +946,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function isModuleSubActionRequest(array $actions): bool
-	{
+	protected function isModuleSubActionRequest(array $actions): bool {
 		return
 			($this->request->server['REQUEST_METHOD'] == 'POST') &&
 			($this->request->get['route'] == "{$this->route_prefix}payment/{$this->module_name}") &&
@@ -984,8 +959,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	protected function loadLanguage(): void
-	{
+	protected function loadLanguage(): void {
 		$this->load->language("{$this->route_prefix}payment/{$this->module_name}");
 	}
 
@@ -994,8 +968,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	protected function loadPaymentMethodModel(): void
-	{
+	protected function loadPaymentMethodModel(): void {
 		$this->load->model("{$this->route_prefix}payment/{$this->module_name}");
 	}
 
@@ -1004,8 +977,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return object
 	 */
-	protected function getModelInstance(): object
-	{
+	protected function getModelInstance(): object {
 		$method = "model_extension_emerchantpay_payment_{$this->module_name}";
 
 		return $this->{$method};
@@ -1016,8 +988,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	protected function processPostIndexAction(): void
-	{
+	protected function processPostIndexAction(): void {
 		try {
 			if ($this->validate()) {
 				$this->model_setting_setting->editSetting($this->module_name, $this->request->post);
@@ -1061,8 +1032,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	protected function processGetIndexAction(): void
-	{
+	protected function processGetIndexAction(): void {
 		// TODO do we need separate method for this?
 		$this->addExternalResources(array(
 			'treeGrid',
@@ -1152,8 +1122,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return array
 	 */
-	protected function buildLanguagePhrases(): array
-	{
+	protected function buildLanguagePhrases(): array {
 		$result = array();
 
 		$phrases = array(
@@ -1256,8 +1225,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function validate(): bool
-	{
+	protected function validate(): bool {
 		$this->validateRequiredFields();
 
 		if (!$this->user->hasPermission('modify', "{$this->route_prefix}payment/{$this->module_name}")) {
@@ -1277,8 +1245,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	protected function isUserLoggedInAndAuthorized(): void
-	{
+	protected function isUserLoggedInAndAuthorized(): void {
 		$is_logged_in = $this->user->isLogged();
 
 		$has_access = $this->user->hasPermission('access', "{$this->route_prefix}payment/{$this->module_name}");
@@ -1300,8 +1267,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	protected function sortTransactionByRelation(&$array_out, $val, $array_asc): void
-	{
+	protected function sortTransactionByRelation(&$array_out, $val, $array_asc): void {
 		if (isset($val['org_key'])) {
 			$array_out[$val['org_key']] = $val;
 
@@ -1320,8 +1286,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	protected function getCurrencyCode(): string
-	{
+	protected function getCurrencyCode(): string {
 		return $this->session->data['currency'] ?? $this->config->get('config_currency');
 	}
 
@@ -1332,8 +1297,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return array
 	 */
-	protected function getTemplateCurrencyArray($currency_code = null): array
-	{
+	protected function getTemplateCurrencyArray($currency_code = null): array {
 		if (empty($currency_code))
 			$currency_code = $this->getCurrencyCode();
 
@@ -1360,8 +1324,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function addExternalResources($resource_names): bool
-	{
+	protected function addExternalResources($resource_names): bool {
 		$resources_loaded = (bool)count($resource_names) > 0;
 
 		foreach ($resource_names as $resource_name)
@@ -1377,8 +1340,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function addExternalResource($resource_name): bool
-	{
+	protected function addExternalResource($resource_name): bool {
 		// TODO: I suggest to load all resources at once and conditionally only jQueryNumber
 		$resource_loaded = true;
 
@@ -1393,8 +1355,7 @@ abstract class BaseController extends Controller
 			$this->document->addScript(HTTP_CATALOG . $this->route_prefix . 'admin/view/javascript/emerchantpay/jQueryExtensions/js/jquery.number.min.js');
 		} else if ($resource_name == 'commonStyleSheet') {
 			$this->document->addStyle(HTTP_CATALOG . $this->route_prefix . 'admin/view/stylesheet/emerchantpay/emerchantpay-admin.css');
-		} else
-			$resource_loaded = false;
+		} else $resource_loaded = false;
 
 		return $resource_loaded;
 	}
@@ -1404,8 +1365,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	protected function getLastCronExecTime(): string
-	{
+	protected function getLastCronExecTime(): string {
 		$result = $this->language->get('alert_cron_not_run_yet');
 
 		$query = $this->db->query('SELECT `start_time` FROM `' . DB_PREFIX . $this->module_name . '_cronlog` ORDER BY `log_entry_id` DESC LIMIT 1');
@@ -1423,8 +1383,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	protected function getCronExecStatus(): string
-	{
+	protected function getCronExecStatus(): string {
 		$result = 'danger';
 
 		$time_diff = (microtime(true) - strtotime($this->getLastCronExecTime()));
@@ -1446,8 +1405,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	protected function getLogEntryStatus($run_time, $pid): string
-	{
+	protected function getLogEntryStatus($run_time, $pid): string {
 		$status = null;
 
 		if (is_null($run_time)) {
@@ -1470,8 +1428,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return array
 	 */
-	protected function getRecurringTransactionType($type_id): array
-	{
+	protected function getRecurringTransactionType($type_id): array {
 		$result = '';
 
 		$this->load->language('sale/recurring');
@@ -1503,8 +1460,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	protected function getModalFormLink($token): string
-	{
+	protected function getModalFormLink($token): string {
 		$link_parameters = [
 			'route'  => "{$this->route_prefix}payment/{$this->module_name}",
 			'args'   => 'action=getModalForm&user_token=' . $token,
@@ -1521,8 +1477,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	protected function getPaymentLink($token)
-	{
+	protected function getPaymentLink($token) {
 		$link = [
 			'route'  => 'marketplace/extension',
 			'args'   => 'type=payment&user_token=' . $token,
@@ -1539,8 +1494,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return string
 	 */
-	protected function getLink($link_parameters): string
-	{
+	protected function getLink($link_parameters): string {
 		return $this->url->link(
 			$link_parameters['route'],
 			$link_parameters['args'],
@@ -1555,8 +1509,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function isTransactionWithCustomAttribute($transaction_type): bool
-	{
+	protected function isTransactionWithCustomAttribute($transaction_type): bool {
 		$transaction_types = [
 			Types::GOOGLE_PAY,
 			Types::PAY_PAL,
@@ -1574,8 +1527,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function checkReferenceActionByCustomAttr($action, $transaction_type): bool
-	{
+	protected function checkReferenceActionByCustomAttr($action, $transaction_type): bool {
 		$selected_types = $this->config->get("{$this->module_name}_transaction_type");
 
 		if (!is_array($selected_types)) {
@@ -1649,8 +1601,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return bool
 	 */
-	protected function hasApprovedState($transaction_type): bool
-	{
+	protected function hasApprovedState($transaction_type): bool {
 		if (empty($transaction_type)) {
 			return false;
 		}
@@ -1663,21 +1614,18 @@ abstract class BaseController extends Controller
 	/**
 	 * Check if any of the required fields is empty
 	 *
+	 * @param array|null $required_fields
+	 *
 	 * @return void
 	 */
-	private function validateRequiredFields(): void
-	{
-		$required_fields = [
+	protected function validateRequiredFields(?array $required_fields = []): void {
+		$required_fields += [
 			"{$this->module_name}_username"                => 'username',
 			"{$this->module_name}_password"                => 'password',
 			"{$this->module_name}_transaction_type"        => 'transaction_type',
 			"{$this->module_name}_order_status_id"         => 'order_status',
 			"{$this->module_name}_order_failure_status_id" => 'order_failure_status',
 		];
-
-		if ($this->module_name === 'emerchantpay_direct') {
-			$required_fields["{$this->module_name}_async_order_status_id"] = 'order_async_status';
-		}
 
 		foreach ($required_fields as $field => $error_key) {
 			if (empty($this->request->post[$field])) {

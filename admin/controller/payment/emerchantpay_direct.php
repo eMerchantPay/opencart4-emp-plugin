@@ -40,8 +40,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @param $registry
 	 */
-	public function __construct($registry)
-	{
+	public function __construct($registry) {
 		parent::__construct($registry);
 		// TODO array_push with single element
 		array_push($this->error_field_key_list, 'token');
@@ -52,24 +51,17 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return bool
 	 */
-	protected function isModuleRequiresSsl(): bool
-	{
+	protected function isModuleRequiresSsl(): bool {
 		return true;
 	}
 
 	/**
 	 * Ensure that the current user has permissions to see/modify this module
 	 *
-	 * @return bool
+	 * @return void
 	 */
-	protected function validate(): bool
-	{
-		parent::validate();
-
-		if (empty($this->request->post["{$this->module_name}_token"])) {
-			$this->error['token'] = $this->language->get('error_token');
-		}
-
-		return !$this->error;
+	protected function validateRequiredFields(?array $required_fields = []): void {
+		$required_fields["{$this->module_name}_async_order_status_id"] = 'order_async_status';
+		parent::validateRequiredFields($required_fields);
 	}
 }

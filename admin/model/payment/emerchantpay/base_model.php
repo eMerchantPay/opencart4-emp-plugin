@@ -19,7 +19,11 @@
 
 namespace Opencart\Admin\Model\Extension\Emerchantpay\Payment\emerchantpay;
 
+use Genesis\API\Constants\Endpoints;
+use Genesis\API\Constants\Environments;
 use Genesis\API\Constants\Transaction\Parameters\ScaExemptions;
+use Genesis\Config;
+use Genesis\Exceptions\InvalidArgument;
 use Opencart\System\Engine\Model;
 
 /**
@@ -35,15 +39,14 @@ class BaseModel extends Model
 	 *
 	 * @var string
 	 */
-	protected $module_version = '1.1.4';
+	protected $module_version = '1.1.5';
 
 	/**
 	 * Returns formatted array with available SCA Exemptions
 	 *
 	 * @return array
 	 */
-	public function getScaExemptions(): array
-	{
+	public function getScaExemptions(): array {
 		$data           = [];
 		$sca_exemptions = [
 			ScaExemptions::EXEMPTION_LOW_RISK  => 'Low risk',
@@ -58,5 +61,34 @@ class BaseModel extends Model
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Bootstrap Genesis Library
+	 *
+	 * @return void
+	 *
+	 * @throws InvalidArgument
+	 */
+	protected function bootstrap(): void {
+		if (!class_exists('\Genesis\Genesis', false)) {
+			include DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
+		}
+
+		Config::setEndpoint(
+			Endpoints::EMERCHANTPAY
+		);
+
+		Config::setUsername(
+			$this->config->get("{$this->module_name}_username")
+		);
+
+		Config::setPassword(
+			$this->config->get("{$this->module_name}_password")
+		);
+
+		Config::setEnvironment(
+			$this->config->get("{$this->module_name}_sandbox") ? Environments::STAGING : Environments::PRODUCTION
+		);
 	}
 }

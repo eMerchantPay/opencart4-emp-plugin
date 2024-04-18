@@ -29,6 +29,7 @@ use Genesis\API\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as
 use Genesis\API\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
 use Genesis\API\Request\Financial\Alternatives\Klarna\Items as KlarnaItems;
 use Genesis\Config;
+use Genesis\Exceptions\InvalidArgument;
 use Genesis\Genesis;
 use Opencart\Admin\Model\Extension\Emerchantpay\Payment\emerchantpay\BaseModel;
 use Opencart\Extension\Emerchantpay\System\DbHelper;
@@ -41,15 +42,14 @@ use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
  */
 class EmerchantpayCheckout extends BaseModel
 {
-	protected $module_name = 'emerchantpay_checkout';
+	protected string $module_name = 'emerchantpay_checkout';
 
 	/**
 	 * Perform installation logic
 	 *
 	 * @return void
 	 */
-	public function install(): void
-	{
+	public function install(): void {
 		$this->db->query("
 			CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "emerchantpay_checkout_transactions` (
 			  `unique_id` VARCHAR(255) NOT NULL,
@@ -102,8 +102,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return void
 	 */
-	public function uninstall(): void
-	{
+	public function uninstall(): void {
 		// Keep transaction data
 		//$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "emerchantpay_checkout_transactions`;");
 
@@ -119,8 +118,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return mixed bool on fail, row on success
 	 */
-	public function getTransactionById($reference_id): mixed
-	{
+	public function getTransactionById($reference_id): mixed {
 		$query = $this->db->query("
 			SELECT * FROM `" . DB_PREFIX . "emerchantpay_checkout_transactions`
 			WHERE `unique_id` = '" . $this->db->escape($reference_id) . "' LIMIT 1
@@ -143,8 +141,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return float
 	 */
-	public function getTransactionsSumAmount($order_id, $reference_id, $types, $status): float
-	{
+	public function getTransactionsSumAmount($order_id, $reference_id, $types, $status): float {
 		$transactions = $this->getTransactionsByTypeAndStatus($order_id, $reference_id, $types, $status);
 		$total_amount = 0;
 
@@ -168,8 +165,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return array|false
 	 */
-	public function getTransactionsByTypeAndStatus($order_id, $reference_id, $transaction_types, $status): array|false
-	{
+	public function getTransactionsByTypeAndStatus($order_id, $reference_id, $transaction_types, $status): array|false {
 		$query = $this->db->query("
 			SELECT *
 			FROM `" . DB_PREFIX . "emerchantpay_checkout_transactions` AS t
@@ -193,8 +189,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return mixed bool on fail, rows on success
 	 */
-	public function getTransactionsByOrder($order_id): mixed
-	{
+	public function getTransactionsByOrder($order_id): mixed {
 		$query = $this->db->query("
 			SELECT * FROM `" . DB_PREFIX . "emerchantpay_checkout_transactions`
 			WHERE `order_id` = '" . abs(intval($order_id)) . "'
@@ -220,8 +215,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return object|string
 	 */
-	public function capture($type, $reference_id, $amount, $currency, $usage, $order_id, $token = null): object|string
-	{
+	public function capture($type, $reference_id, $amount, $currency, $usage, $order_id, $token = null): object|string {
 		try {
 			$this->bootstrap($token);
 
@@ -269,8 +263,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return object|string
 	 */
-	public function refund($type, $reference_id, $amount, $currency, $usage = '', $token = null, $order_id = 0): object|string
-	{
+	public function refund($type, $reference_id, $amount, $currency, $usage = '', $token = null, $order_id = 0): object|string {
 		try {
 			$this->bootstrap($token);
 
@@ -314,8 +307,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return object|string
 	 */
-	public function void($reference_id, $usage = '', $token = null): object|string
-	{
+	public function void($reference_id, $usage = '', $token = null): object|string {
 		try {
 			$this->bootstrap($token);
 
@@ -347,8 +339,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return array
 	 */
-	public function getTransactionTypes(): array
-	{
+	public function getTransactionTypes(): array {
 		$data = array();
 
 		$this->bootstrap();
@@ -452,8 +443,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return array
 	 */
-	public function getBankCodes(): array
-	{
+	public function getBankCodes(): array {
 		$data = [];
 		$available_bank_codes = EmerchantpayHelper::getAvailableBankCodes();
 
@@ -472,8 +462,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return array
 	 */
-	public function getRecurringTransactionTypes(): array
-	{
+	public function getRecurringTransactionTypes(): array {
 		$data = [];
 
 		$this->bootstrap();
@@ -523,47 +512,10 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return string
 	 */
-	public function genTransactionId($prefix = ''): string
-	{
+	public function genTransactionId($prefix = ''): string {
 		$hash = md5(microtime(true) . uniqid() . mt_rand(PHP_INT_SIZE, PHP_INT_MAX));
 
 		return (string)$prefix . substr($hash, -(strlen($hash) - strlen($prefix)));
-	}
-
-	/**
-	 * Bootstrap Genesis Library
-	 *
-	 * @param string $token Terminal token
-	 *
-	 * @return void
-	 *
-	 * @throws \Genesis\Exceptions\InvalidArgument
-	 */
-	public function bootstrap($token = null): void
-	{
-		if (!class_exists('\Genesis\Genesis', false)) {
-			include DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
-
-			Config::setEndpoint(
-				Endpoints::EMERCHANTPAY
-			);
-
-			Config::setUsername(
-				$this->config->get('emerchantpay_checkout_username')
-			);
-
-			Config::setPassword(
-				$this->config->get('emerchantpay_checkout_password')
-			);
-
-			Config::setEnvironment(
-				$this->config->get('emerchantpay_checkout_sandbox') ? Environments::STAGING : Environments::PRODUCTION
-			);
-		}
-
-		if (isset($token)) {
-			Config::setToken((string)$token);
-		}
 	}
 
 	/**
@@ -573,8 +525,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return void
 	 */
-	public function logEx(\Exception $exception): void
-	{
+	public function logEx(\Exception $exception): void {
 		$db_helper = new DbHelper($this->module_name, $this);
 		$db_helper->logEx($exception);
 	}
@@ -584,8 +535,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return string
 	 */
-	public function getVersion(): string
-	{
+	public function getVersion(): string {
 		return $this->module_version;
 	}
 
@@ -598,8 +548,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @throws \Exception
 	 */
-	public function populateTransaction($data): void
-	{
+	public function populateTransaction($data): void {
 		$db_helper = new DbHelper($this->module_name, $this);
 		$db_helper->populateTransaction($data);
 	}
@@ -612,8 +561,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @throws \Genesis\Exceptions\ErrorParameter
 	 */
-	protected function getKlarnaReferenceAttributes($currency, $order_id): KlarnaItems
-	{
+	protected function getKlarnaReferenceAttributes($currency, $order_id): KlarnaItems {
 		$this->load->model('sale/order');
 
 		$product_order_info = $this->model_sale_order->getOrderProducts($order_id);
@@ -639,5 +587,21 @@ class EmerchantpayCheckout extends BaseModel
 				)
 			)
 		);
+	}
+
+	/**
+	 * Bootstrap Genesis Library
+	 *
+	 * @param string|null $token Terminal token
+	 *
+	 * @return void
+	 *
+	 * @throws InvalidArgument
+	 */
+	protected function bootstrap(?string $token = null): void {
+		parent::bootstrap();
+		if (isset($token)) {
+			Config::setToken((string)$token);
+		}
 	}
 }

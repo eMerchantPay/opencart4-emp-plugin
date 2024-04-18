@@ -26,6 +26,7 @@ use Genesis\API\Constants\Transaction\States;
 use Genesis\API\Constants\Transaction\Types;
 use Genesis\Config;
 use Genesis\Exceptions\ErrorAPI;
+use Genesis\Exceptions\InvalidArgument;
 use Genesis\Genesis;
 use Genesis\Utils\Common as CommonUtils;
 use Opencart\Catalog\Model\Extension\Emerchantpay\Payment\Emerchantpay\BaseModel;
@@ -57,13 +58,12 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return array
 	 */
-	public function getMethods($address): array
-	{
+	public function getMethods($address): array {
 		$this->load->language('extension/emerchantpay/payment/emerchantpay_checkout');
 
 		if (!$this->config->get('emerchantpay_checkout_geo_zone_id')) {
 			$status = true;
-		}  elseif (!$this->config->get('config_checkout_payment_address')) {
+		} elseif (!$this->config->get('config_checkout_payment_address')) {
 			// this is "Billing Address required" from store settings. If unchecked, no further checks are needed
 			$status = true;
 		} else {
@@ -95,8 +95,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return null|string
 	 */
-	public function getConsumerId($email): null|string
-	{
+	public function getConsumerId($email): null|string {
 		$query = $this->db->query("
 			SELECT * FROM
 				`" . DB_PREFIX . "emerchantpay_checkout_consumers`
@@ -115,8 +114,7 @@ class EmerchantpayCheckout extends BaseModel
 	 * @param $email
 	 * @param $consumer_id
 	 */
-	public function addConsumer($email, $consumer_id): void
-	{
+	public function addConsumer($email, $consumer_id): void {
 		try {
 			$this->db->query("
 				INSERT INTO
@@ -136,8 +134,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return bool|mixed
 	 */
-	public function getTransactionById($unique_id): mixed
-	{
+	public function getTransactionById($unique_id): mixed {
 		if (isset($unique_id) && !empty($unique_id)) {
 			$query = $this->db->query("
 				SELECT * FROM `" . DB_PREFIX . "emerchantpay_checkout_transactions`
@@ -162,8 +159,7 @@ class EmerchantpayCheckout extends BaseModel
 	 * @throws \Exception
 	 * @throws ErrorAPI
 	 */
-	public function create($data): mixed
-	{
+	public function create($data): mixed {
 		try {
 			$this->bootstrap();
 
@@ -240,8 +236,7 @@ class EmerchantpayCheckout extends BaseModel
 	 * @throws \Exception
 	 * @throws ErrorAPI
 	 */
-	public function reconcile($unique_id): mixed
-	{
+	public function reconcile($unique_id): mixed {
 		try {
 			$this->bootstrap();
 
@@ -264,30 +259,12 @@ class EmerchantpayCheckout extends BaseModel
 	/**
 	 * Bootstrap Genesis Library
 	 *
+	 * @throws InvalidArgument
+	 *
 	 * @return void
 	 */
-	public function bootstrap(): void
-	{
-		// Look for, but DO NOT try to load via Auto-loader magic methods
-		if (!class_exists('\Genesis\Genesis', false)) {
-			include DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
-
-			Config::setEndpoint(
-				Endpoints::EMERCHANTPAY
-			);
-
-			Config::setUsername(
-				$this->config->get('emerchantpay_checkout_username')
-			);
-
-			Config::setPassword(
-				$this->config->get('emerchantpay_checkout_password')
-			);
-
-			Config::setEnvironment(
-				$this->config->get('emerchantpay_checkout_sandbox') ? Environments::STAGING : Environments::PRODUCTION
-			);
-		}
+	public function bootstrap(): void {
+		parent::bootstrap();
 	}
 
 	/**
@@ -298,8 +275,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return string
 	 */
-	public function genTransactionId($prefix = ''): string
-	{
+	public function genTransactionId($prefix = ''): string {
 		$hash = md5(microtime(true) . uniqid() . mt_rand(PHP_INT_SIZE, PHP_INT_MAX));
 
 		return $prefix . substr($hash, -(strlen($hash) - strlen($prefix)));
@@ -312,8 +288,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return mixed
 	 */
-	public function getOrderTotals($order_id): mixed
-	{
+	public function getOrderTotals($order_id): mixed {
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_total WHERE	order_id = '" . (int)$order_id . "' ORDER BY sort_order");
 
 		return $query->rows;
@@ -324,8 +299,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return array
 	 */
-	public function getTransactionTypes(): array
-	{
+	public function getTransactionTypes(): array {
 		$processed_list = array();
 		$alias_map = array();
 
@@ -392,8 +366,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @throws \Genesis\Exceptions\ErrorParameter
 	 */
-	public function addTransactionTypesToGatewayRequest(Genesis $genesis, $order): void
-	{
+	public function addTransactionTypesToGatewayRequest(Genesis $genesis, $order): void {
 		$types = $this->isRecurringOrder() ? $this->getRecurringTransactionTypes() : $this->getTransactionTypes();
 
 		foreach ($types as $type) {
@@ -429,8 +402,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @throws \Genesis\Exceptions\ErrorParameter
 	 */
-	public function getCustomRequiredAttributes($type, $order): array
-	{
+	public function getCustomRequiredAttributes($type, $order): array {
 		$parameters = array();
 		switch ($type) {
 			case Types::IDEBIT_PAYIN:
@@ -479,8 +451,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return array
 	 */
-	public function getRecurringTransactionTypes(): array
-	{
+	public function getRecurringTransactionTypes(): array {
 		return $this->config->get('emerchantpay_checkout_recurring_transaction_type');
 	}
 
@@ -489,8 +460,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return string
 	 */
-	public function getUsage(): string
-	{
+	public function getUsage(): string {
 		return sprintf('%s checkout transaction', $this->config->get('config_name'));
 	}
 
@@ -499,8 +469,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return int
 	 */
-	public function getCurrentUserId(): int
-	{
+	public function getCurrentUserId(): int {
 		return array_key_exists('user_id', $this->session->data) ? $this->session->data['user_id'] : 0;
 	}
 
@@ -509,8 +478,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return string
 	 */
-	public function getLanguage(): string
-	{
+	public function getLanguage(): string {
 		$language = isset($this->session->data['language']) ? $this->session->data['language'] : $this->config->get('config_language');
 		$language_code = substr($language, 0, 2);
 
@@ -529,8 +497,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return null|string
 	 */
-	protected function retrieveConsumerIdFromGenesisGateway($email): null|string
-	{
+	protected function retrieveConsumerIdFromGenesisGateway($email): null|string {
 		try {
 			$genesis = new Genesis('NonFinancial\Consumers\Retrieve');
 			$genesis->request()->setEmail($email);
@@ -554,8 +521,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return bool
 	 */
-	protected function isErrorResponse($response): bool
-	{
+	protected function isErrorResponse($response): bool {
 		$state = new States($response->status);
 
 		return $state->isError();
@@ -566,8 +532,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return void
 	 */
-	protected function prepareWpfRequestTokenization(Genesis $genesis): void
-	{
+	protected function prepareWpfRequestTokenization(Genesis $genesis): void {
 		$genesis->request()->setRememberCard(true);
 
 		$consumer_id = $this->getConsumerId($genesis->request()->getCustomerEmail());
@@ -582,8 +547,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return bool
 	 */
-	protected function isWpfTokenizationEnabled(): bool
-	{
+	protected function isWpfTokenizationEnabled(): bool {
 		return (bool)$this->config->get('emerchantpay_checkout_wpf_tokenization');
 	}
 
@@ -594,8 +558,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return void
 	 */
-	protected function saveWpfTokenizationData($genesis): void
-	{
+	protected function saveWpfTokenizationData($genesis): void {
 		if (!empty($genesis->response()->getResponseObject()->consumer_id)) {
 			$this->addConsumer(
 				$genesis->request()->getCustomerEmail(),
@@ -609,8 +572,7 @@ class EmerchantpayCheckout extends BaseModel
 	 *
 	 * @return string
 	 */
-	private function getCustomParameterKey($transaction_type): string
-	{
+	private function getCustomParameterKey($transaction_type): string {
 		switch ($transaction_type) {
 			case Types::PPRO:
 				$result = 'payment_method';
@@ -635,8 +597,7 @@ class EmerchantpayCheckout extends BaseModel
 	 * @param array $selected_types Selected transaction types
 	 * @return array
 	 */
-	private function orderCardTransactionTypes($selected_types)
-	{
+	private function orderCardTransactionTypes($selected_types) {
 		$custom_order = Types::getCardTransactionTypes();
 
 		asort($selected_types);

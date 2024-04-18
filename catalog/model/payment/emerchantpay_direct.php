@@ -26,6 +26,7 @@ use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\Control\DeviceTypes;
 use Genesis\API\Constants\Transaction\Types;
 use Genesis\Config;
 use Genesis\Exceptions\ErrorAPI;
+use Genesis\Exceptions\InvalidArgument;
 use Genesis\Genesis;
 use Opencart\Catalog\Model\Extension\Emerchantpay\Payment\Emerchantpay\BaseModel;
 use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
@@ -51,8 +52,7 @@ class EmerchantpayDirect extends BaseModel
 	 *
 	 * @return array
 	 */
-	public function getMethods($address): array
-	{
+	public function getMethods($address): array {
 		$this->load->language('extension/emerchantpay/payment/emerchantpay_direct');
 
 		if (!$this->config->get('emerchantpay_direct_geo_zone_id')) {
@@ -95,8 +95,7 @@ class EmerchantpayDirect extends BaseModel
 	 *
 	 * @return bool|mixed
 	 */
-	public function getTransactionById($reference_id): mixed
-	{
+	public function getTransactionById($reference_id): mixed {
 		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "emerchantpay_direct_transactions` WHERE `unique_id` = '" . $this->db->escape($reference_id) . "' LIMIT 1");
 
 		if ($query->num_rows) {
@@ -115,8 +114,7 @@ class EmerchantpayDirect extends BaseModel
 	 *
 	 * @throws /Exception
 	 */
-	public function sendTransaction($data): mixed
-	{
+	public function sendTransaction($data): mixed {
 		try {
 			$this->bootstrap();
 
@@ -170,7 +168,7 @@ class EmerchantpayDirect extends BaseModel
 					->setReturnFailureUrl($data['return_failure_url']);
 			}
 
-			if ($this->isThreedsAllowed()) {
+			if ($this->isThreedsAllowed() && $this->is3dTransaction()) {
 				$this->addThreedsParamsToRequest($genesis, $data);
 				$this->addThreedsBrowserParamsToRequest($genesis, $data);
 			}
@@ -196,8 +194,7 @@ class EmerchantpayDirect extends BaseModel
 	 *
 	 * @throws /Exception
 	 */
-	public function reconcile($unique_id): mixed
-	{
+	public function reconcile($unique_id): mixed {
 		try {
 			$this->bootstrap();
 
@@ -221,53 +218,21 @@ class EmerchantpayDirect extends BaseModel
 	 * Bootstrap Genesis Library
 	 *
 	 * @return void
-	 */
-	public function bootstrap(): void
-	{
-		// Look for, but DO NOT try to load via Auto-loader magic methods
-		if (!class_exists('\Genesis\Genesis', false)) {
-			include DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
-
-			Config::setEndpoint(
-				Endpoints::EMERCHANTPAY
-			);
-
-			Config::setUsername(
-				$this->config->get('emerchantpay_direct_username')
-			);
-
-			Config::setPassword(
-				$this->config->get('emerchantpay_direct_password')
-			);
-
-			Config::setToken(
-				$this->config->get('emerchantpay_direct_token')
-			);
-
-			Config::setEnvironment(
-				$this->config->get('emerchantpay_direct_sandbox') ? Environments::STAGING : Environments::PRODUCTION
-			);
-		}
-	}
-
-	/**
-	 * Check whether the selected transaction type is a 3d transaction
 	 *
-	 * @return bool
+	 * @throws InvalidArgument
 	 */
-	public function is3dTransaction(): bool
-	{
-		$types = array(
-			Types::AUTHORIZE_3D,
-			Types::SALE_3D,
-			Types::INIT_RECURRING_SALE_3D,
-		);
+	public function bootstrap(): void {
+		parent::bootstrap();
 
-		$transaction_type = $this->config->get(
-			$this->isRecurringOrder() ? 'emerchantpay_direct_recurring_transaction_type' : 'emerchantpay_direct_transaction_type'
-		);
+		$token = $this->config->get("{$this->module_name}_token");
 
-		return in_array($transaction_type, $types);
+		if (empty($token)) {
+			Config::setForceSmartRouting(true);
+
+			return;
+		}
+
+		Config::setToken($token);
 	}
 
 	/**
@@ -278,8 +243,7 @@ class EmerchantpayDirect extends BaseModel
 	 *
 	 * @return string
 	 */
-	public function genTransactionId($prefix = ''): string
-	{
+	public function genTransactionId($prefix = ''): string {
 		$hash = md5(microtime(true) . uniqid() . mt_rand(PHP_INT_SIZE, PHP_INT_MAX));
 
 		return (string)$prefix . substr($hash, -(strlen($hash) - strlen($prefix)));
@@ -290,8 +254,7 @@ class EmerchantpayDirect extends BaseModel
 	 *
 	 * @return string
 	 */
-	public function getUsage(): string
-	{
+	public function getUsage(): string {
 		return sprintf('%s direct transaction', $this->config->get('config_name'));
 	}
 
@@ -303,8 +266,7 @@ class EmerchantpayDirect extends BaseModel
 	 *
 	 * @return void
 	 */
-	protected function addThreedsBrowserParamsToRequest($genesis, $data): void
-	{
+	protected function addThreedsBrowserParamsToRequest($genesis, $data): void {
 		$http_accept = $this->request->server['HTTP_ACCEPT'] ?? null;
 
 		/** @var Create $request */

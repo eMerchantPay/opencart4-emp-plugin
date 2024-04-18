@@ -79,9 +79,11 @@
                          placeholder="{{ entry_password }}" class="form-control"/>
                 </div>
               </div>
-              <div class="row mb-3 required">
-                <label class="col-sm-2  col-form-label" for="{{ module_name }}_token">
-                  {{ entry_token }}
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="{{ module_name }}_token">
+                    <span data-bs-toggle="tooltip" title="{{ help_token }}">
+                        {{ entry_token }}
+                    </span>
                 </label>
                 <div class="col-sm-10">
                   <input type="text" id="{{ module_name }}_token" name="{{ module_name }}_token"
@@ -91,9 +93,9 @@
               </div>
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">
-                                <span data-bs-toggle="tooltip" title="{{ help_sandbox }}">
-                                    {{ entry_sandbox }}
-                                </span>
+                    <span data-bs-toggle="tooltip" title="{{ help_sandbox }}">
+                        {{ entry_sandbox }}
+                    </span>
                 </label>
                 <div class="col-sm-10 form-check form-switch form-switch-lg">
                   <input type="hidden" name="emerchantpay_direct_sandbox"

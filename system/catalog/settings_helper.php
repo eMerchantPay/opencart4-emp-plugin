@@ -42,8 +42,7 @@ class SettingsHelper
     /**
      * @param Controller $controller
      */
-    public function __construct($controller)
-    {
+    public function __construct($controller) {
         $this->controller = $controller;
     }
 
@@ -52,8 +51,7 @@ class SettingsHelper
      *
      * @return array
      */
-    public function getBaseSettings($module_name)
-    {
+    public function getBaseSettings($module_name) {
         return [
             "{$module_name}_username" => $this->getFieldValue("{$module_name}_username"),
             "{$module_name}_password" => $this->getFieldValue("{$module_name}_password"),
@@ -68,8 +66,7 @@ class SettingsHelper
      *
      * @return array
      */
-    public function getModuleSettings($module_name)
-    {
+    public function getModuleSettings($module_name) {
         return [
             "{$module_name}_transaction_type"            => $this->getFieldValue("{$module_name}_transaction_type"),
             "{$module_name}_wpf_tokenization"            => $this->getFieldValue("{$module_name}_wpf_tokenization"),
@@ -103,8 +100,7 @@ class SettingsHelper
      *
      * @return mixed
      */
-    public function setDefaultOptions($data, $module_name)
-    {
+    public function setDefaultOptions($data, $module_name) {
         $default_param_values = array(
             "{$module_name}_sandbox"                     => 1,
             "{$module_name}_status"                      => 0,
@@ -130,8 +126,7 @@ class SettingsHelper
     /**
      * @return string
      */
-    private function getServerAddress(): string
-    {
+    private function getServerAddress(): string {
         $server_name = $this->controller->request->server['SERVER_NAME'];
 
         if (empty($server_name) || !function_exists('gethostbyname')) {
@@ -148,8 +143,7 @@ class SettingsHelper
      *
      * @return mixed
      */
-    public function getFieldValue($key): mixed
-    {
+    public function getFieldValue($key): mixed {
         if (isset($this->controller->request->post[$key])) {
             return $this->controller->request->post[$key];
         }

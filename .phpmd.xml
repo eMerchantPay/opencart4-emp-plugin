@@ -24,7 +24,7 @@
     </rule>
     <!--End of CodeSize RuleSets-->
 
-    <!--Start of Controlversial RuleSets-->
+    <!--Start of Controversial RuleSets-->
     <rule ref="rulesets/controversial.xml">
         <exclude name="CamelCaseClassName" />
         <exclude name="CamelCasePropertyName" />
@@ -32,7 +32,7 @@
         <exclude name="CamelCaseParameterName" />
         <exclude name="CamelCaseVariableName" />
     </rule>
-    <!--End of Controlversial RuleSets-->
+    <!--End of Controversial RuleSets-->
 
     <rule ref="rulesets/design.xml"/>
 
@@ -58,4 +58,5 @@
     <rule ref="rulesets/unusedcode.xml"/>
 
     <exclude-pattern>*/genesisgateway/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
 </ruleset>

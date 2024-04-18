@@ -127,6 +127,7 @@ $_['text_recurring_fully_refunded'] = 'Order fully refunded. Recurring canceled.
 // Help
 $_['help_total']                                     = 'Minimum Order Amount required, in order to activate this payment method.';
 $_['help_sandbox']                                   = 'Use Sandbox (Test) or Production (Live) environment.';
+$_['help_token']                                     = 'This is your Gateway token. If you do not have a token, contact tech-support@emerchantpay.com to enable Smart Router for your account.';
 $_['help_order_status']                              = 'Order status for successfully completed transactions';
 $_['help_async_order_status']                        = 'Order status for initiated asynchronous (3D) transaction';
 $_['help_failure_order_status']                      = 'Order status for failed transactions';

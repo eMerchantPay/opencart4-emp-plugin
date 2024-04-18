@@ -63,8 +63,7 @@ class EmerchantpayHelper
 	 *
 	 * @return array
 	 */
-	public static function getRecurringTransactionTypes(): array
-	{
+	public static function getRecurringTransactionTypes(): array {
 		return array(
 			Types::INIT_RECURRING_SALE,
 			Types::INIT_RECURRING_SALE_3D
@@ -76,8 +75,7 @@ class EmerchantpayHelper
 	 *
 	 * @return array
 	 */
-	public static function getTransactionTypeNames(): array
-	{
+	public static function getTransactionTypeNames(): array {
 		$data = array();
 
 		foreach (Types::getWPFTransactionTypes() as $type) {
@@ -104,8 +102,7 @@ class EmerchantpayHelper
 	 *
 	 * @throws \Genesis\Exceptions\ErrorParameter
 	 */
-	public static function getKlarnaCustomParamItems($order): Items
-	{
+	public static function getKlarnaCustomParamItems($order): Items {
 		$tax_class_ids = self::getTaxClassIdFromProductInfo($order['additional']['product_info']);
 
 		$items = new Items($order['currency']);
@@ -160,11 +157,10 @@ class EmerchantpayHelper
 	 *
 	 * @return array
 	 */
-	public static function getTaxClassIdFromProductInfo($products): array
-	{
+	public static function getTaxClassIdFromProductInfo($products): array {
 		$class_ids = array();
 
-		foreach($products as $product) {
+		foreach ($products as $product) {
 			$class_ids[$product['product_id']] = $product['tax_class_id'];
 		}
 
@@ -178,11 +174,10 @@ class EmerchantpayHelper
 	 *
 	 * @return int
 	 */
-	public static function getShippingFromOrderTotals($order_totals): int
-	{
+	public static function getShippingFromOrderTotals($order_totals): int {
 		$shipping = 0;
 
-		foreach($order_totals as $item_total) {
+		foreach ($order_totals as $item_total) {
 			if ($item_total['code'] == 'shipping') {
 				$shipping += $item_total['value'];
 			}
@@ -198,11 +193,10 @@ class EmerchantpayHelper
 	 *
 	 * @return int
 	 */
-	public static function getTaxFromOrderTotals($order_totals): int
-	{
+	public static function getTaxFromOrderTotals($order_totals): int {
 		$tax = 0;
 
-		foreach($order_totals as $item_total) {
+		foreach ($order_totals as $item_total) {
 			if ($item_total['code'] == 'tax') {
 				$tax += $item_total['value'];
 			}
@@ -216,8 +210,7 @@ class EmerchantpayHelper
 	 *
 	 * @return array
 	 */
-	public static function getAvailableBankCodes(): array
-	{
+	public static function getAvailableBankCodes(): array {
 		return [
 			Banks::CPI => 'Interac Combined Pay-in',
 			Banks::BCT => 'Bancontact',
@@ -232,8 +225,7 @@ class EmerchantpayHelper
 	 *
 	 * @return bool
 	 */
-	public static function isSecureConnection($request): bool
-	{
+	public static function isSecureConnection($request): bool {
 		if (!empty($request->server['HTTPS']) && strtolower($request->server['HTTPS']) != 'off') {
 			return true;
 		}
@@ -256,8 +248,7 @@ class EmerchantpayHelper
 	 *
 	 * @return string
 	 */
-	public static function getFirstRemoteAddress($remote_address): string
-	{
+	public static function getFirstRemoteAddress($remote_address): string {
 		$ips = explode(",", $remote_address);
 
 		return trim($ips[0]);

@@ -3,3 +3,5 @@
 emerchantpay.ocmod.zip
 /vendor/
 bin/check-standards
+phpcs_report.xml
+phpmd_report.xml

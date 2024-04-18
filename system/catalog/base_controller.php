@@ -59,8 +59,7 @@ abstract class BaseController extends Controller
 	 * @param string $action (Optional) Action to be attached to the $url with the separator
 	 * @return string
 	 */
-	protected function buildUrl($controller, $action = ''): string
-	{
+	protected function buildUrl($controller, $action = ''): string {
 		if (!empty($action)) {
 			$action_separator = EmerchantpayHelper::CONTROLLER_ACTION_SEPARATOR;
 			$controller .= "$action_separator$action";
@@ -80,8 +79,7 @@ abstract class BaseController extends Controller
 
 	 * @return void
 	 */
-	protected function populateAddresses($order_info, &$data): void
-	{
+	protected function populateAddresses($order_info, &$data): void {
 		if (!empty($order_info['payment_firstname']) && !empty($order_info['payment_lastname']) && !empty($order_info['payment_address_1'])) {
 			$data['billing'] =
 				array(
@@ -143,8 +141,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return array
 	 */
-	protected function populateTreedsParams($controller, $product_info, $order_info): array
-	{
+	protected function populateTreedsParams($controller, $product_info, $order_info): array {
 		$model_account_order             = $controller->model_account_order;
 		$model_account_customer          = $controller->model_account_customer;
 
@@ -231,8 +228,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return int
 	 */
-	protected function getCustomerId($controller): int
-	{
+	protected function getCustomerId($controller): int {
 		if ($controller->customer->isLogged()) {
 			return $controller->customer->getId();
 		}
@@ -245,8 +241,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return array
 	 */
-	protected function buildActionUrls($module_name): array
-	{
+	protected function buildActionUrls($module_name): array {
 		return [
 			'notification_url'   =>
 				$this->buildUrl(
@@ -273,8 +268,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	protected function respondWithError($message): void
-	{
+	protected function respondWithError($message): void {
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode(['error' => $message]));
 	}
@@ -287,8 +281,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return array
 	 */
-	protected function populateCommonData($model, $order_info): array
-	{
+	protected function populateCommonData($model, $order_info): array {
 		return [
 			'transaction_id'     => $model->genTransactionId(self::PLATFORM_TRANSACTION_PREFIX),
 
@@ -313,8 +306,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return array
 	 */
-	protected function populateDataUniqIdTrx($transaction, $order_info): array
-	{
+	protected function populateDataUniqIdTrx($transaction, $order_info): array {
 		$timestamp = ($transaction->timestamp instanceof \DateTime) ? $transaction->timestamp->format('c') : $transaction->timestamp;
 
 		return [
@@ -336,8 +328,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return array
 	 */
-	protected function prepareViewDataMixedCart(): array
-	{
+	protected function prepareViewDataMixedCart(): array {
 		return [
 			'text_loading'                    => $this->language->get('text_loading'),
 			'text_payment_mixed_cart_content' => $this->language->get('text_payment_mixed_cart_content'),
@@ -354,8 +345,7 @@ abstract class BaseController extends Controller
 	 *
 	 * @return void
 	 */
-	public function addOrderRecurring($payment_reference, $model): void
-	{
+	public function addOrderRecurring($payment_reference, $model): void {
 		$recurring_products = $this->cart->getRecurringProducts();
 		if (!empty($recurring_products)) {
 			$model->addOrderRecurring(

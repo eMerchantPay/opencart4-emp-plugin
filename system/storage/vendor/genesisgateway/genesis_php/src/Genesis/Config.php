@@ -19,12 +19,13 @@
  * THE SOFTWARE.
  *
  * @author      emerchantpay
- * @copyright   Copyright (C) 2015-2023 emerchantpay Ltd.
+ * @copyright   Copyright (C) 2015-2024 emerchantpay Ltd.
  * @license     http://opensource.org/licenses/MIT The MIT License
  */
 namespace Genesis;
 
 use Genesis\Utils\Common as CommonUtils;
+use Genesis\Exceptions\InvalidArgument;
 
 /**
  * Class Config
@@ -37,17 +38,19 @@ use Genesis\Utils\Common as CommonUtils;
  * @method static string getPassword()          Get the Password, set in the configuration
  * @method static string getToken()             Get the Terminal Token, set in configuration
  * @method static bool   getForceSmartRouting() Get whether Smart Routing endpoint will be used for Financial types
+ * @method static string getBillingApiToken()   Get the Billing API Token, set in configuration
  *
- * @method static null setUsername($value)  Set the Username
- * @method static null setPassword($value)  Set the Password
- * @method static null setToken($value)     Set the Terminal
+ * @method static null setUsername($value)        Set the Username
+ * @method static null setPassword($value)        Set the Password
+ * @method static null setToken($value)           Set the Terminal
+ * @method static null setBillingApiToken($value) Set the Billing API Token
  */
 final class Config
 {
     /**
      * Library Version
      */
-    const VERSION = '1.24.2';
+    const VERSION = '1.24.6';
 
     /**
      * Core configuration settings
@@ -60,7 +63,8 @@ final class Config
         'password'            => null,
         'token'               => null,
         'environment'         => \Genesis\API\Constants\Environments::STAGING,
-        'force_smart_routing' => false
+        'force_smart_routing' => false,
+        'billing_api_token'   => null
     ];
 
     /**
@@ -93,7 +97,7 @@ final class Config
             'production' => 'kyc.',
             'sandbox'    => 'staging.kyc.'
         ],
-        'smart_router' => [
+        'api_service'  => [
             'production' => 'prod.api.',
             'sandbox'    => 'staging.api.'
         ]
@@ -176,7 +180,7 @@ final class Config
      * @param   string  $environmentArg
      * @return  string
      *
-     * @throws \Genesis\Exceptions\InvalidArgument
+     * @throws InvalidArgument
      */
     public static function setEnvironment($environmentArg)
     {
@@ -205,7 +209,7 @@ final class Config
             }
         }
 
-        throw new \Genesis\Exceptions\InvalidArgument(
+        throw new InvalidArgument(
             'Invalid Environment'
         );
     }
@@ -226,7 +230,7 @@ final class Config
      * @param   string  $endpointArg
      * @return  string
      *
-     * @throws \Genesis\Exceptions\InvalidArgument
+     * @throws InvalidArgument
      */
     public static function setEndpoint($endpointArg)
     {
@@ -254,7 +258,7 @@ final class Config
             }
         }
 
-        throw new \Genesis\Exceptions\InvalidArgument(
+        throw new InvalidArgument(
             'Invalid Endpoint'
         );
     }
@@ -316,12 +320,12 @@ final class Config
      *
      * @param string $iniFile Path to an ini file containing the settings
      *
-     * @throws \Genesis\Exceptions\InvalidArgument()
+     * @throws InvalidArgument()
      */
     public static function loadSettings($iniFile)
     {
         if (!file_exists($iniFile)) {
-            throw new \Genesis\Exceptions\InvalidArgument(
+            throw new InvalidArgument(
                 'The provided configuration file is invalid or inaccessible!'
             );
         }

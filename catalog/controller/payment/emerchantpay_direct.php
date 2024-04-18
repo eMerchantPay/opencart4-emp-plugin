@@ -44,8 +44,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @param $registry
 	 */
-	public function __construct($registry)
-	{
+	public function __construct($registry) {
 		parent::__construct($registry);
 	}
 
@@ -54,8 +53,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return mixed
 	 */
-	public function index(): mixed
-	{
+	public function index(): mixed {
 		$this->load->language('extension/emerchantpay/payment/emerchantpay_direct');
 		$this->load->model('extension/emerchantpay/payment/emerchantpay_direct');
 
@@ -88,8 +86,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return array
 	 */
-	public function prepareViewData(): array
-	{
+	public function prepareViewData(): array {
 		return array(
 			'text_credit_card' => $this->language->get('text_credit_card'),
 			'text_loading'     => $this->language->get('text_loading'),
@@ -113,8 +110,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return void
 	 */
-	public function send(): void
-	{
+	public function send(): void {
 		$this->load->model('account/order');
 		$this->load->model('account/customer');
 		$this->load->model('checkout/order');
@@ -186,8 +182,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return void
 	 */
-	public function callback(): void
-	{
+	public function callback(): void {
 		$this->load->model('checkout/order');
 		$this->load->model('extension/emerchantpay/payment/emerchantpay_direct');
 
@@ -269,8 +264,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return void
 	 */
-	public function success(): void
-	{
+	public function success(): void {
 		$this->response->redirect($this->buildUrl('checkout/success'));
 	}
 
@@ -279,8 +273,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return void
 	 */
-	public function failure(): void
-	{
+	public function failure(): void {
 		$this->load->language('extension/emerchantpay/payment/emerchantpay_direct');
 
 		$this->session->data['error'] = $this->language->get('text_payment_failure');
@@ -296,8 +289,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return mixed|string
 	 */
-	protected function inputFilter($input, $type): mixed
-	{
+	protected function inputFilter($input, $type): mixed {
 		switch ($type) {
 			case 'number':
 				return str_replace(' ', '', $input);
@@ -337,8 +329,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return void
 	 */
-	protected function isUserLoggedIn(): void
-	{
+	protected function isUserLoggedIn(): void {
 		$is_callback = strpos((string)$this->request->get['route'], 'callback') !== false;
 
 		if (!$this->customer->isLogged() && !$is_callback) {
@@ -351,8 +342,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return string
 	 */
-	protected function getLegalText(): string
-	{
+	protected function getLegalText(): string {
 		$store_name = $this->config->get('config_name');
 
 		return sprintf('&copy; %s emerchantpay Ltd.<br/><br/>%s', date('Y'), $store_name);
@@ -363,8 +353,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return void
 	 */
-	public function cron(): void
-	{
+	public function cron(): void {
 		$this->load->model('extension/payment/emerchantpay_direct');
 		$this->model_extension_emerchantpay_payment_emerchantpay_direct->processRecurringOrders();
 	}
@@ -374,8 +363,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return array[]
 	 */
-	private function populateBrowserParams(): array
-	{
+	private function populateBrowserParams(): array {
 		return [
 			'browser_data' => [
 				'java_enabled'                 => $this->request->post['emerchantpay_direct-java_enabled'],
@@ -394,8 +382,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @return array
 	 */
-	private function populateCreditCardData()
-	{
+	private function populateCreditCardData() {
 		return [
 			'card_holder'        => $this->inputFilter(
 				$this->request->post['emerchantpay_direct-cc-holder'],
@@ -430,8 +417,7 @@ class EmerchantpayDirect extends BaseController
 	 *
 	 * @throws Exception
 	 */
-	private function processTransactionStatus($transaction, &$redirect_url)
-	{
+	private function processTransactionStatus($transaction, &$redirect_url) {
 		switch ($transaction->status) {
 			case States::PENDING_ASYNC:
 				$this->model_checkout_order->addHistory(

@@ -24,18 +24,17 @@ if (!class_exists('Genesis\Genesis', false)) {
 }
 
 use DateTime;
-use Genesis\API\Constants\Endpoints;
-use Genesis\API\Constants\Environments;
-use Genesis\API\Request\WPF\Create;
+use Genesis\Api\Constants\Endpoints;
+use Genesis\Api\Constants\Environments;
+use Genesis\Api\Request\Wpf\Create;
 use Genesis\Config;
-use Genesis\Exceptions\ErrorAPI;
 use Genesis\Exceptions\InvalidArgument;
 use Genesis\Genesis;
-use Genesis\API\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as ApplePayPaymentTypes;
-use Genesis\API\Constants\Transaction\Parameters\Mobile\GooglePay\PaymentTypes as GooglePayPaymentTypes;
-use Genesis\API\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
-use Genesis\API\Constants\Transaction\States;
-use Genesis\API\Constants\Transaction\Types;
+use Genesis\Api\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as ApplePayPaymentTypes;
+use Genesis\Api\Constants\Transaction\Parameters\Mobile\GooglePay\PaymentTypes as GooglePayPaymentTypes;
+use Genesis\Api\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
+use Genesis\Api\Constants\Transaction\States;
+use Genesis\Api\Constants\Transaction\Types;
 use Opencart\Extension\Emerchantpay\System\DbHelper;
 use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
 use Opencart\System\Engine\Model;
@@ -46,6 +45,10 @@ use Opencart\System\Engine\Model;
  * Class BaseModel
  *
  * @package Opencart\Catalog\Model\Extension\Emerchantpay\Payment\Emerchantpay
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassLength)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 abstract class BaseModel extends Model
 {
@@ -849,8 +852,6 @@ abstract class BaseModel extends Model
 			$genesis->execute();
 
 			return $genesis->response()->getResponseObject();
-		} catch (ErrorAPI $api) {
-			throw $api;
 		} catch (\Exception $exception) {
 			$this->logEx($exception);
 

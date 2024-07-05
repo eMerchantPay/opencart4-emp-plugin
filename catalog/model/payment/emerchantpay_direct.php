@@ -19,13 +19,12 @@
 
 namespace Opencart\Catalog\Model\Extension\Emerchantpay\Payment;
 
-use Genesis\API\Constants\Endpoints;
-use Genesis\API\Constants\Environments;
-use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\Control\ChallengeWindowSizes;
-use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\Control\DeviceTypes;
-use Genesis\API\Constants\Transaction\Types;
+use Genesis\Api\Constants\Endpoints;
+use Genesis\Api\Constants\Environments;
+use Genesis\Api\Constants\Transaction\Parameters\Threeds\V2\Control\ChallengeWindowSizes;
+use Genesis\Api\Constants\Transaction\Parameters\Threeds\V2\Control\DeviceTypes;
+use Genesis\Api\Constants\Transaction\Types;
 use Genesis\Config;
-use Genesis\Exceptions\ErrorAPI;
 use Genesis\Exceptions\InvalidArgument;
 use Genesis\Genesis;
 use Opencart\Catalog\Model\Extension\Emerchantpay\Payment\Emerchantpay\BaseModel;
@@ -175,9 +174,7 @@ class EmerchantpayDirect extends BaseModel
 
 			$genesis->execute();
 
-			return $genesis->response()->getResponseObject();
-		} catch (ErrorAPI $api) {
-			throw $api;
+			return $genesis->response();
 		} catch (\Exception $exception) {
 			$this->logEx($exception);
 
@@ -198,15 +195,13 @@ class EmerchantpayDirect extends BaseModel
 		try {
 			$this->bootstrap();
 
-			$genesis = new Genesis('WPF\Reconcile');
+			$genesis = new Genesis('Wpf\Reconcile');
 
 			$genesis->request()->setUniqueId($unique_id);
 
 			$genesis->execute();
 
 			return $genesis->response()->getResponseObject();
-		} catch (ErrorAPI $api) {
-			throw $api;
 		} catch (\Exception $exception) {
 			$this->logEx($exception);
 

@@ -23,9 +23,9 @@ if (!class_exists('Genesis\Genesis', false)) {
 	require DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
 }
 
-use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\CardHolderAccount\RegistrationIndicators;
-use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\MerchantRisk\DeliveryTimeframes;
-use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\Purchase\Categories;
+use Genesis\Api\Constants\Transaction\Parameters\Threeds\V2\CardHolderAccount\RegistrationIndicators;
+use Genesis\Api\Constants\Transaction\Parameters\Threeds\V2\MerchantRisk\DeliveryTimeframes;
+use Genesis\Api\Constants\Transaction\Parameters\Threeds\V2\Purchase\Categories;
 use Opencart\Catalog\Model\Extension\Emerchantpay\Payment\EmerchantpayCheckout as ModelEmerchantpayCheckout;
 use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
 use Opencart\System\Engine\Controller;

@@ -24,9 +24,9 @@ if (!class_exists('Genesis\Genesis', false)) {
 }
 
 use Exception;
-use Genesis\API\Constants\Transaction\Parameters\ScaExemptions;
-use Genesis\API\Constants\Transaction\States;
-use Genesis\API\Constants\Transaction\Types;
+use Genesis\Api\Constants\Transaction\Parameters\ScaExemptions;
+use Genesis\Api\Constants\Transaction\States;
+use Genesis\Api\Constants\Transaction\Types;
 use Opencart\Extension\Emerchantpay\System\Catalog\SettingsHelper;
 use Opencart\Extension\Emerchantpay\System\Catalog\ThreedsHelper;
 use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
@@ -36,6 +36,11 @@ use Opencart\System\Engine\Controller;
  * Base Abstract Class for Method Admin Controllers
  *
  * Class BaseController
+ *
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+ * @SuppressWarnings(PHPMD.NPathComplexity)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.ExcessiveClassLength)
  */
 abstract class BaseController extends Controller
 {
@@ -159,6 +164,7 @@ abstract class BaseController extends Controller
 	 * Get transactions list
 	 *
 	 * @return mixed
+	 * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
 	 */
 	public function order() {
 		if ($this->config->get("{$this->module_name}_status")) {

@@ -23,8 +23,8 @@ if (!class_exists('Genesis\Genesis', false)) {
     require DIR_STORAGE . 'vendor/genesisgateway/genesis_php/vendor/autoload.php';
 }
 
-use Genesis\API\Constants\Transaction\Parameters\ScaExemptions;
-use Genesis\API\Constants\Transaction\Parameters\Threeds\V2\Control\ChallengeIndicators;
+use Genesis\Api\Constants\Transaction\Parameters\ScaExemptions;
+use Genesis\Api\Constants\Transaction\Parameters\Threeds\V2\Control\ChallengeIndicators;
 use Opencart\System\Engine\Controller;
 
 /**

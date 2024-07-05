@@ -19,13 +19,12 @@
 
 namespace Opencart\Catalog\Model\Extension\Emerchantpay\Payment;
 
-use Genesis\API\Constants\Endpoints;
-use Genesis\API\Constants\Environments;
-use Genesis\API\Constants\Payment\Methods;
-use Genesis\API\Constants\Transaction\States;
-use Genesis\API\Constants\Transaction\Types;
+use Genesis\Api\Constants\Endpoints;
+use Genesis\Api\Constants\Environments;
+use Genesis\Api\Constants\Payment\Methods;
+use Genesis\Api\Constants\Transaction\States;
+use Genesis\Api\Constants\Transaction\Types;
 use Genesis\Config;
-use Genesis\Exceptions\ErrorAPI;
 use Genesis\Exceptions\InvalidArgument;
 use Genesis\Genesis;
 use Genesis\Utils\Common as CommonUtils;
@@ -36,6 +35,8 @@ use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
  * Front-end model for the "emerchantpay Checkout" module
  *
  * @package EMerchantPayCheckout
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class EmerchantpayCheckout extends BaseModel
 {
@@ -157,13 +158,12 @@ class EmerchantpayCheckout extends BaseModel
 	 * @return mixed
 	 *
 	 * @throws \Exception
-	 * @throws ErrorAPI
 	 */
 	public function create($data): mixed {
 		try {
 			$this->bootstrap();
 
-			$genesis = new Genesis('WPF\Create');
+			$genesis = new Genesis('Wpf\Create');
 
 			$genesis
 				->request()
@@ -216,9 +216,7 @@ class EmerchantpayCheckout extends BaseModel
 
 			$this->saveWpfTokenizationData($genesis);
 
-			return $genesis->response()->getResponseObject();
-		} catch (ErrorAPI $api) {
-			throw $api;
+			return $genesis->response();
 		} catch (\Exception $exception) {
 			$this->logEx($exception);
 
@@ -234,21 +232,18 @@ class EmerchantpayCheckout extends BaseModel
 	 * @return mixed
 	 *
 	 * @throws \Exception
-	 * @throws ErrorAPI
 	 */
 	public function reconcile($unique_id): mixed {
 		try {
 			$this->bootstrap();
 
-			$genesis = new Genesis('WPF\Reconcile');
+			$genesis = new Genesis('Wpf\Reconcile');
 
 			$genesis->request()->setUniqueId($unique_id);
 
 			$genesis->execute();
 
 			return $genesis->response()->getResponseObject();
-		} catch (ErrorAPI $api) {
-			throw $api;
 		} catch (\Exception $exception) {
 			$this->logEx($exception);
 
@@ -401,6 +396,7 @@ class EmerchantpayCheckout extends BaseModel
 	 * @return array
 	 *
 	 * @throws \Genesis\Exceptions\ErrorParameter
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	public function getCustomRequiredAttributes($type, $order): array {
 		$parameters = array();
@@ -484,7 +480,7 @@ class EmerchantpayCheckout extends BaseModel
 
 		$this->bootstrap();
 
-		$constant_name = '\Genesis\API\Constants\i18n::' . strtoupper($language_code);
+		$constant_name = '\Genesis\Api\Constants\i18n::' . strtoupper($language_code);
 		if (defined($constant_name) && constant($constant_name)) {
 			return strtolower($language_code);
 		}

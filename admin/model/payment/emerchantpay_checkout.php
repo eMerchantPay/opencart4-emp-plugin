@@ -19,15 +19,15 @@
 
 namespace Opencart\Admin\Model\Extension\Emerchantpay\Payment;
 
-use Genesis\API\Constants\Endpoints;
-use Genesis\API\Constants\Environments;
-use Genesis\API\Constants\Payment\Methods;
-use Genesis\API\Constants\Transaction\Names;
-use Genesis\API\Constants\Transaction\Types;
-use Genesis\API\Constants\Transaction\Parameters\Mobile\GooglePay\PaymentTypes as GooglePayPaymentTypes;
-use Genesis\API\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as ApplePayPaymentTypes;
-use Genesis\API\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
-use Genesis\API\Request\Financial\Alternatives\Klarna\Items as KlarnaItems;
+use Genesis\Api\Constants\Endpoints;
+use Genesis\Api\Constants\Environments;
+use Genesis\Api\Constants\Payment\Methods;
+use Genesis\Api\Constants\Transaction\Names;
+use Genesis\Api\Constants\Transaction\Types;
+use Genesis\Api\Constants\Transaction\Parameters\Mobile\GooglePay\PaymentTypes as GooglePayPaymentTypes;
+use Genesis\Api\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as ApplePayPaymentTypes;
+use Genesis\Api\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
+use Genesis\Api\Request\Financial\Alternatives\Klarna\Items as KlarnaItems;
 use Genesis\Config;
 use Genesis\Exceptions\InvalidArgument;
 use Genesis\Genesis;
@@ -39,6 +39,7 @@ use Opencart\Extension\Emerchantpay\System\EmerchantpayHelper;
  * Backend model for the "emerchantpay Checkout" module
  *
  * @package EMerchantpayCheckout
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class EmerchantpayCheckout extends BaseModel
 {

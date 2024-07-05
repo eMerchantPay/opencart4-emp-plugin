@@ -19,14 +19,14 @@
 
 namespace Opencart\Extension\Emerchantpay\System;
 
-use Genesis\API\Constants\Banks;
-use Genesis\API\Constants\Transaction\Names;
-use Genesis\API\Constants\Transaction\Types;
-use Genesis\API\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as ApplePayPaymentTypes;
-use Genesis\API\Constants\Transaction\Parameters\Mobile\GooglePay\PaymentTypes as GooglePayPaymentTypes;
-use Genesis\API\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
-use Genesis\API\Request\Financial\Alternatives\Klarna\Item;
-use Genesis\API\Request\Financial\Alternatives\Klarna\Items;
+use Genesis\Api\Constants\Banks;
+use Genesis\Api\Constants\Transaction\Names;
+use Genesis\Api\Constants\Transaction\Types;
+use Genesis\Api\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as ApplePayPaymentTypes;
+use Genesis\Api\Constants\Transaction\Parameters\Mobile\GooglePay\PaymentTypes as GooglePayPaymentTypes;
+use Genesis\Api\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
+use Genesis\Api\Request\Financial\Alternatives\Klarna\Item;
+use Genesis\Api\Request\Financial\Alternatives\Klarna\Items;
 use Opencart\Catalog\Model\Extension\Emerchantpay\Payment\Emerchantpay\BaseModel;
 
 

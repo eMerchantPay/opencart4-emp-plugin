@@ -20,9 +20,9 @@
 namespace Opencart\Catalog\Controller\Extension\Emerchantpay\Payment;
 
 use Exception;
-use Genesis\API\Notification;
+use Genesis\Api\Notification;
 use Opencart\Extension\Emerchantpay\System\Catalog\BaseController;
-use Genesis\API\Constants\Transaction\States;
+use Genesis\Api\Constants\Transaction\States;
 
 /**
  * Front-end controller for the "emerchantpay Direct" module
@@ -144,8 +144,13 @@ class EmerchantpayDirect extends BaseController
 			$data += $this->buildActionUrls($this->module_name);
 			$this->populateAddresses($order_info, $data);
 
-			$transaction = $model->sendTransaction($data);
+			$transaction_response = $model->sendTransaction($data);
 
+            if (!$transaction_response->isSuccessful()) {
+                throw new Exception($transaction_response->getErrorDescription());
+            }
+
+            $transaction = $transaction_response->getResponseObject();
 			if (isset($transaction->unique_id)) {
 				$data = $this->populateDataUniqIdTrx($transaction, $order_info);
 
@@ -181,6 +186,7 @@ class EmerchantpayDirect extends BaseController
 	 * Process Gateway Notification
 	 *
 	 * @return void
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	public function callback(): void {
 		$this->load->model('checkout/order');

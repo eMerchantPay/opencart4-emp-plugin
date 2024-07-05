@@ -19,10 +19,10 @@
 
 namespace Opencart\Admin\Model\Extension\Emerchantpay\Payment;
 
-use Genesis\API\Constants\Endpoints;
-use Genesis\API\Constants\Environments;
-use Genesis\API\Constants\Transaction\Names;
-use Genesis\API\Constants\Transaction\Types;
+use Genesis\Api\Constants\Endpoints;
+use Genesis\Api\Constants\Environments;
+use Genesis\Api\Constants\Transaction\Names;
+use Genesis\Api\Constants\Transaction\Types;
 use Genesis\Config;
 use Genesis\Genesis;
 use Opencart\Admin\Model\Extension\Emerchantpay\Payment\emerchantpay\BaseModel;

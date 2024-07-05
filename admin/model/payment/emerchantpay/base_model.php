@@ -19,9 +19,9 @@
 
 namespace Opencart\Admin\Model\Extension\Emerchantpay\Payment\emerchantpay;
 
-use Genesis\API\Constants\Endpoints;
-use Genesis\API\Constants\Environments;
-use Genesis\API\Constants\Transaction\Parameters\ScaExemptions;
+use Genesis\Api\Constants\Endpoints;
+use Genesis\Api\Constants\Environments;
+use Genesis\Api\Constants\Transaction\Parameters\ScaExemptions;
 use Genesis\Config;
 use Genesis\Exceptions\InvalidArgument;
 use Opencart\System\Engine\Model;
@@ -39,7 +39,7 @@ class BaseModel extends Model
 	 *
 	 * @var string
 	 */
-	protected $module_version = '1.1.5';
+	protected $module_version = '1.1.6';
 
 	/**
 	 * Returns formatted array with available SCA Exemptions

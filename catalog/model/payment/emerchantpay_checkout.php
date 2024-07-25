@@ -117,6 +117,17 @@ class EmerchantpayCheckout extends BaseModel
 	 */
 	public function addConsumer($email, $consumer_id): void {
 		try {
+			$query = $this->db->query("
+				SELECT * FROM
+					`" . DB_PREFIX . "emerchantpay_checkout_consumers`
+				WHERE
+					`customer_email` = '" . $this->db->escape($email) . "' LIMIT 1
+			");
+
+			if ($query->num_rows) {
+				return ;
+			}
+
 			$this->db->query("
 				INSERT INTO
 					`" . DB_PREFIX . "emerchantpay_checkout_consumers` (`customer_email`, `consumer_id`)
@@ -301,13 +312,8 @@ class EmerchantpayCheckout extends BaseModel
 		$selected_types = $this->orderCardTransactionTypes(
 			$this->config->get('emerchantpay_checkout_transaction_type')
 		);
-		$methods = Methods::getMethods();
 
-		foreach ($methods as $method) {
-			$alias_map[$method . self::PPRO_TRANSACTION_SUFFIX] = Types::PPRO;
-		}
-
-		$alias_map = array_merge($alias_map, [
+		$alias_map = [
 			self::GOOGLE_PAY_TRANSACTION_PREFIX . self::GOOGLE_PAY_PAYMENT_TYPE_AUTHORIZE =>
 				Types::GOOGLE_PAY,
 			self::GOOGLE_PAY_TRANSACTION_PREFIX . self::GOOGLE_PAY_PAYMENT_TYPE_SALE      =>
@@ -322,7 +328,7 @@ class EmerchantpayCheckout extends BaseModel
 				Types::APPLE_PAY,
 			self::APPLE_PAY_TRANSACTION_PREFIX . self::APPLE_PAY_PAYMENT_TYPE_SALE        =>
 				Types::APPLE_PAY,
-		]);
+		];
 
 		foreach ($selected_types as $selected_type) {
 			if (array_key_exists($selected_type, $alias_map)) {
@@ -336,7 +342,6 @@ class EmerchantpayCheckout extends BaseModel
 				$processed_list[$transaction_type]['parameters'][] = array(
 					$key => str_replace(
 						[
-							self::PPRO_TRANSACTION_SUFFIX,
 							self::GOOGLE_PAY_TRANSACTION_PREFIX,
 							self::PAYPAL_TRANSACTION_PREFIX,
 							self::APPLE_PAY_TRANSACTION_PREFIX
@@ -570,9 +575,6 @@ class EmerchantpayCheckout extends BaseModel
 	 */
 	private function getCustomParameterKey($transaction_type): string {
 		switch ($transaction_type) {
-			case Types::PPRO:
-				$result = 'payment_method';
-				break;
 			case Types::PAY_PAL:
 				$result = 'payment_type';
 				break;

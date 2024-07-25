@@ -368,14 +368,6 @@ class EmerchantpayCheckout extends BaseModel
 		// Exclude Transaction Types
 		$transaction_types = array_diff($transaction_types, $excluded_types);
 
-		// Add PPRO types
-		$ppro_types = array_map(
-			function ($type) {
-				return $type . EmerchantpayHelper::PPRO_TRANSACTION_SUFFIX;
-			},
-			Methods::getMethods()
-		);
-
 		// Add Google Payment types
 		$google_pay_types = array_map(
 			function ($type) {
@@ -412,7 +404,6 @@ class EmerchantpayCheckout extends BaseModel
 
 		$transaction_types = array_merge(
 			$transaction_types,
-			$ppro_types,
 			$google_pay_types,
 			$paypal_types,
 			$apple_pay_types

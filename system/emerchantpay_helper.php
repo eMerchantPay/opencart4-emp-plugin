@@ -39,7 +39,6 @@ class EmerchantpayHelper
 {
 	const CONTROLLER_ACTION_SEPARATOR = '.';
 
-	const PPRO_TRANSACTION_SUFFIX     = '_ppro';
 	const TRANSACTION_LANGUAGE_PREFIX = 'text_transaction_';
 
 	const GOOGLE_PAY_TRANSACTION_PREFIX     = Types::GOOGLE_PAY . '_';

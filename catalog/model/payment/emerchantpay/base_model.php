@@ -52,9 +52,6 @@ use Opencart\System\Engine\Model;
  */
 abstract class BaseModel extends Model
 {
-
-	const PPRO_TRANSACTION_SUFFIX     = '_ppro';
-
 	const GOOGLE_PAY_TRANSACTION_PREFIX     = Types::GOOGLE_PAY . '_';
 	const GOOGLE_PAY_PAYMENT_TYPE_AUTHORIZE = GooglePayPaymentTypes::AUTHORIZE;
 	const GOOGLE_PAY_PAYMENT_TYPE_SALE      = GooglePayPaymentTypes::SALE;

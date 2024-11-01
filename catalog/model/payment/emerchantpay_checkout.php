@@ -231,7 +231,7 @@ class EmerchantpayCheckout extends BaseModel
 		} catch (\Exception $exception) {
 			$this->logEx($exception);
 
-			return false;
+			throw $exception;
 		}
 	}
 
@@ -412,8 +412,8 @@ class EmerchantpayCheckout extends BaseModel
 					'customer_account_id' => $order['additional']['user_hash']
 				);
 				break;
-			case Types::KLARNA_AUTHORIZE:
-				$parameters = EmerchantpayHelper::getKlarnaCustomParamItems($order)->toArray();
+			case Types::INVOICE:
+				$parameters = EmerchantpayHelper::getInvoiceCustomParamItems($order)->toArray();
 				break;
 			case Types::TRUSTLY_SALE:
 				$current_user_id = $order['additional']['user_id'];

@@ -20,13 +20,17 @@
 namespace Opencart\Extension\Emerchantpay\System;
 
 use Genesis\Api\Constants\Banks;
+use Genesis\Api\Constants\Financial\Alternative\Transaction\ItemTypes;
 use Genesis\Api\Constants\Transaction\Names;
 use Genesis\Api\Constants\Transaction\Types;
 use Genesis\Api\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as ApplePayPaymentTypes;
 use Genesis\Api\Constants\Transaction\Parameters\Mobile\GooglePay\PaymentTypes as GooglePayPaymentTypes;
 use Genesis\Api\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
-use Genesis\Api\Request\Financial\Alternatives\Klarna\Item;
-use Genesis\Api\Request\Financial\Alternatives\Klarna\Items;
+use Genesis\Api\Request\Financial\Alternatives\Transaction\Item;
+use Genesis\Api\Request\Financial\Alternatives\Transaction\Items;
+use Genesis\Exceptions\ErrorParameter;
+use Genesis\Exceptions\InvalidArgument;
+use Genesis\Utils\Currency;
 use Opencart\Catalog\Model\Extension\Emerchantpay\Payment\Emerchantpay\BaseModel;
 
 
@@ -97,52 +101,55 @@ class EmerchantpayHelper
 	 *          )
 	 *      )
 	 *
-	 * @return Items
+	 * @throws ErrorParameter|InvalidArgument
 	 *
-	 * @throws \Genesis\Exceptions\ErrorParameter
+	 * @return Items
 	 */
-	public static function getKlarnaCustomParamItems($order): Items {
-		$tax_class_ids = self::getTaxClassIdFromProductInfo($order['additional']['product_info']);
+	public static function getInvoiceCustomParamItems($order): Items {
+		$tax_class_ids      = self::getTaxClassIdFromProductInfo($order['additional']['product_info']);
+		$currency_precision = Currency::fetchCurrencyExponent($order['currency']);
 
-		$items = new Items($order['currency']);
+		$items = new Items();
+		$items->setCurrency($order['currency']);
+
 		foreach ($order['additional']['product_order_info'] as $product) {
-			$tax_class_id = Item::ITEM_TYPE_PHYSICAL;
+			$tax_class_id = ItemTypes::PHYSICAL;
 			if ($tax_class_ids[$product['product_id']] == BaseModel::OC_TAX_CLASS_VIRTUAL_PRODUCT) {
-				$tax_class_id = Item::ITEM_TYPE_DIGITAL;
+				$tax_class_id = ItemTypes::DIGITAL;
 			}
 
-			$klarna_item = new Item(
-				$product['name'],
-				$tax_class_id,
-				$product['quantity'],
-				$product['price']
-			);
-			$items->addItem($klarna_item);
+			$invoice_item = new Item();
+			$invoice_item
+				->setName($product['name'])
+				->setItemType($tax_class_id)
+				->setQuantity($product['quantity'])
+				->setUnitPrice(round($product['price'], $currency_precision));
 
+			$items->addItem($invoice_item);
 		}
 
 		$taxes = floatval(self::getTaxFromOrderTotals($order['additional']['order_totals']));
 		if ($taxes) {
-			$items->addItem(
-				new Item(
-					'Taxes',
-					Item::ITEM_TYPE_SURCHARGE,
-					1,
-					$taxes
-				)
-			);
+			$invoice_item = new Item();
+			$invoice_item
+				->setName('Taxes')
+				->setItemType(ItemTypes::SURCHARGE)
+				->setQuantity(1)
+				->setUnitPrice(round($taxes, $currency_precision));
+
+			$items->addItem($invoice_item);
 		}
 
 		$shipping = floatval(self::getShippingFromOrderTotals($order['additional']['order_totals']));
 		if ($shipping) {
-			$items->addItem(
-				new Item(
-					'Shipping Costs',
-					Item::ITEM_TYPE_SHIPPING_FEE,
-					1,
-					$shipping
-				)
-			);
+			$invoice_item = new Item();
+			$invoice_item
+				->setName('Shipping Costs')
+				->setItemType(ItemTypes::SHIPPING_FEE)
+				->setQuantity(1)
+				->setUnitPrice(round($shipping, $currency_precision));
+
+			$items->addItem($invoice_item);
 		}
 
 		return $items;

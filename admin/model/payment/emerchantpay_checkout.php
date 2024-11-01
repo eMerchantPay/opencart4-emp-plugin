@@ -19,15 +19,12 @@
 
 namespace Opencart\Admin\Model\Extension\Emerchantpay\Payment;
 
-use Genesis\Api\Constants\Endpoints;
-use Genesis\Api\Constants\Environments;
-use Genesis\Api\Constants\Payment\Methods;
 use Genesis\Api\Constants\Transaction\Names;
 use Genesis\Api\Constants\Transaction\Types;
 use Genesis\Api\Constants\Transaction\Parameters\Mobile\GooglePay\PaymentTypes as GooglePayPaymentTypes;
 use Genesis\Api\Constants\Transaction\Parameters\Mobile\ApplePay\PaymentTypes as ApplePayPaymentTypes;
 use Genesis\Api\Constants\Transaction\Parameters\Wallets\PayPal\PaymentTypes as PayPalPaymentTypes;
-use Genesis\Api\Request\Financial\Alternatives\Klarna\Items as KlarnaItems;
+use Genesis\Api\Request\Financial\Alternatives\Transaction\Items as InvoiceItems;
 use Genesis\Config;
 use Genesis\Exceptions\InvalidArgument;
 use Genesis\Genesis;
@@ -237,8 +234,8 @@ class EmerchantpayCheckout extends BaseModel
 				->setAmount($amount)
 				->setCurrency($currency);
 
-			if ($type === Types::KLARNA_AUTHORIZE) {
-				$genesis->request()->setItems($this->getKlarnaReferenceAttributes($currency, $order_id));
+			if ($type === Types::INVOICE) {
+				$genesis->request()->setItems($this->getInvoiceReferenceAttributes($currency, $order_id));
 			}
 
 			$genesis->execute();
@@ -285,8 +282,8 @@ class EmerchantpayCheckout extends BaseModel
 				->setAmount($amount)
 				->setCurrency($currency);
 
-			if ($type === Types::KLARNA_CAPTURE) {
-				$genesis->request()->setItems($this->getKlarnaReferenceAttributes($currency, $order_id));
+			if ($type === Types::INVOICE_CAPTURE) {
+				$genesis->request()->setItems($this->getInvoiceReferenceAttributes($currency, $order_id));
 			}
 
 			$genesis->execute();
@@ -549,11 +546,11 @@ class EmerchantpayCheckout extends BaseModel
 	 * @param $currency
 	 * @param $order_id
 	 *
-	 * @return KlarnaItems
+	 * @return InvoiceItems
 	 *
 	 * @throws \Genesis\Exceptions\ErrorParameter
 	 */
-	protected function getKlarnaReferenceAttributes($currency, $order_id): KlarnaItems {
+	protected function getInvoiceReferenceAttributes($currency, $order_id): InvoiceItems {
 		$this->load->model('sale/order');
 
 		$product_order_info = $this->model_sale_order->getOrderProducts($order_id);
@@ -569,7 +566,7 @@ class EmerchantpayCheckout extends BaseModel
 			)
 		);
 
-		return EmerchantpayHelper::getKlarnaCustomParamItems(
+		return EmerchantpayHelper::getInvoiceCustomParamItems(
 			array(
 				'currency'   => $currency,
 				'additional' => array(

@@ -1021,8 +1021,8 @@ abstract class BaseController extends Controller
 				$error_message = sprintf("<ul>%s</ul>", $error_message);
 
 				$json = array(
-					'success' => 0,
-					'text'    => $error_message
+					'error' => 1,
+					'text'  => $error_message
 				);
 			}
 

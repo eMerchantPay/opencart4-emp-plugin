@@ -97,6 +97,7 @@ abstract class BaseController extends Controller
 
 	/**
 	 * BaseController constructor.
+	 *
 	 * @param $registry
 	 *
 	 * @throws Exception

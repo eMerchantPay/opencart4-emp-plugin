@@ -140,6 +140,7 @@ class EmerchantpayDirect extends BaseModel
 				->setCvv($data['cvv'])
 				->setExpirationMonth($data['expiration_month'])
 				->setExpirationYear($data['expiration_year'])
+				->setClientSideEncryption($data['encrypted'])
 				// Billing
 				->setBillingFirstName($data['billing']['first_name'])
 				->setBillingLastName($data['billing']['last_name'])
@@ -178,7 +179,7 @@ class EmerchantpayDirect extends BaseModel
 		} catch (\Exception $exception) {
 			$this->logEx($exception);
 
-			return false;
+			throw $exception;
 		}
 	}
 

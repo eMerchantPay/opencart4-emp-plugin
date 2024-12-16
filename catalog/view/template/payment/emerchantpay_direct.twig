@@ -14,8 +14,17 @@
  * @copyright  2018 emerchantpay Ltd.
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License, version 2 (GPL-2.0) #}
 
+<script>
+    window.empEncryptConf = {
+        publicKey:     `{{ cse_public_key }}`,
+        textCardLegal: '{{ text_card_legal }}',
+        buttonTarget:  '{{ button_target }}',
+        methodName:    'emerchantpay_direct'
+    };
+</script>
+
 {% for script in scripts %}
-    <script src="{{ script.href }}" type="text/javascript"></script>
+    <script src="{{ script.href }}" type="text/javascript"{% if script.integrity %} integrity="{{ script.integrity }}"{% endif %}{% if script.crossOrigin %} crossorigin="{{ script.crossOrigin }}"{% endif %}></script>
 {% endfor %}
 
 {% for style in styles %}
@@ -65,32 +74,47 @@
 </div>
 
 <script type="text/javascript">
-    new Card({
-        form: '.emerchantpay-direct',
-        container: '.card-wrapper',
-        messages: {
-            legalText: '{{ text_card_legal }}'
-        },
-        formSelectors: {
-            numberInput   : 'input[name="emerchantpay_direct-cc-number"]',
-            nameInput    : 'input[name="emerchantpay_direct-cc-holder"]',
-            expiryInput   : 'input[name="emerchantpay_direct-cc-expiration"]',
-            cvcInput    : 'input[name="emerchantpay_direct-cc-cvv"]'
-        }
-    });
+    const methodName = window.empEncryptConf.methodName;
 
-    $(function(){
-        $("[data-hide]").on("click", function(){
+    $(function () {
+        empPopulateBrowserParams.execute(document);
+
+        $("[data-hide]").on("click", function () {
             $(this).closest("." + $(this).attr("data-hide")).fadeOut();
         });
-    });
 
-    $(document).ready(function() {
-        $('#button-confirm').bind('click', function () {
+        new Card({
+            form:      '.emerchantpay-direct',
+            container: '.card-wrapper',
+            messages: {
+                legalText: window.empEncryptConf.textCardLegal,
+            },
+            formSelectors: {
+                numberInput: `input[name="${methodName}-cc-number"]`,
+                nameInput:   `input[name="${methodName}-cc-holder"]`,
+                expiryInput: `input[name="${methodName}-cc-expiration"]`,
+                cvcInput:    `input[name="${methodName}-cc-cvv"]`
+            }
+        });
+
+        $('#button-confirm').on('click', function () {
+            let ajaxData = $('.emerchantpay-direct').serializeArray();
+
+            if (window.empEncryptConf.publicKey) {
+                let cardData      = empClassicDirectEncrypt.creditCardData();
+                let encryptedData = empCardDataEncrypt.encrypt(window.empEncryptConf.publicKey, cardData);
+
+                ajaxData = ajaxData.filter(item => !new RegExp(`^${methodName}-cc-(holder|number|expiration|cvv)$`).test(item.name));
+                ajaxData.push({ name: `${methodName}-cc-holder`,     value: encryptedData['card_holder'] });
+                ajaxData.push({ name: `${methodName}-cc-number`,     value: encryptedData['card_number'] });
+                ajaxData.push({ name: `${methodName}-cc-expiration`, value: `${encryptedData['month']}/${encryptedData['year']}` });
+                ajaxData.push({ name: `${methodName}-cc-cvv`,        value: encryptedData['cvv'] });
+            }
+
             $.ajax({
-                url: '{{ button_target }}',
+                url: window.empEncryptConf.buttonTarget,
                 type: 'post',
-                data: $('.emerchantpay-direct').serialize(),
+                data: ajaxData,
                 cache: false,
                 dataType: 'json',
                 beforeSend: function () {
@@ -98,10 +122,7 @@
                 },
                 success: function (json) {
                     if (json['error']) {
-                        $('.alert.alert-checkout').text(json['error']);
-
-                        $('.alert-checkout').fadeIn();
-
+                        $('.alert.alert-checkout').text(json['error']).fadeIn();
                         $('#button-confirm').button('reset').prop('disabled', false);
                     }
 
@@ -112,6 +133,4 @@
             });
         });
     });
-
-    empPopulateBrowserParams.execute(document);
 </script>

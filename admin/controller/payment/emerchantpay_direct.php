@@ -39,6 +39,8 @@ class EmerchantpayDirect extends BaseController
 	 * ControllerExtensionPaymentEmerchantPayDirect constructor.
 	 *
 	 * @param $registry
+	 *
+	 * @throws \Exception
 	 */
 	public function __construct($registry) {
 		parent::__construct($registry);
@@ -57,6 +59,8 @@ class EmerchantpayDirect extends BaseController
 
 	/**
 	 * Ensure that the current user has permissions to see/modify this module
+	 *
+	 * @param array|null $required_fields
 	 *
 	 * @return void
 	 */

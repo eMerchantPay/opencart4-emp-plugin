@@ -236,11 +236,13 @@ abstract class BaseController extends Controller
 		return 0;
 	}
 
-	/**
-	 * Create the return urls
-	 *
-	 * @return array
-	 */
+    /**
+     * Create the return urls
+     *
+     * @param $module_name
+     *
+     * @return array
+     */
 	protected function buildActionUrls($module_name): array {
 		return [
 			'notification_url'   =>

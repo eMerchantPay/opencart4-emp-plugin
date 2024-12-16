@@ -65,6 +65,7 @@ $_['entry_threeds_allowed']             = 'Enable 3DSv2';
 $_['entry_threeds_challenge_indicator'] = '3DSv2 Challenge';
 $_['entry_sca_exemption']               = 'SCA Exemption';
 $_['entry_sca_exemption_amount']        = 'Exemption Amount';
+$_['entry_cse_public_key']              = 'Client-Side Encryption Public Key';
 
 // Transaction Types
 //$_ = array_merge($_, EmerchantpayHelper::getTransactionTypeNames());
@@ -147,6 +148,7 @@ $_['help_threeds_allowed']                           = 'Enable 3DSv2 optional pa
 $_['help_threeds_challenge_indicator']               = 'The value has weight and might impact the decision whether a challenge will be required for the transaction or not.';
 $_['help_sca_exemption']                             = 'Exemption for the Strong Customer Authentication.';
 $_['help_sca_exemption_amount']                      = 'Exemption Amount determinate if the SCA Exemption should be included in the request to the Gateway.';
+$_['help_cse_public_key']                            = 'Client Side Encryption public key is located in your Console Admin. For more info ask tech-support@emerchantpay.com.';
 
 // Error
 $_['error_permission']           = 'Warning: You do not have permission to modify payment module emerchantpay!';

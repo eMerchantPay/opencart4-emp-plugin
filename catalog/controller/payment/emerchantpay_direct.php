@@ -23,6 +23,7 @@ use Exception;
 use Genesis\Api\Notification;
 use Opencart\Extension\Emerchantpay\System\Catalog\BaseController;
 use Genesis\Api\Constants\Transaction\States;
+use Opencart\Extension\Emerchantpay\System\Catalog\SettingsHelper;
 
 /**
  * Front-end controller for the "emerchantpay Direct" module
@@ -76,6 +77,15 @@ class EmerchantpayDirect extends BaseController
 				'href' =>
 					HTTP_SERVER . '/extension/emerchantpay/catalog/view/javascript/emerchantpay/emp-browser-parameters.js'
 			];
+			$data['scripts'][] = [
+				'href' =>
+					HTTP_SERVER . '/extension/emerchantpay/catalog/view/javascript/emerchantpay/emp-direct-encrypt.js'
+			];
+			$data['scripts'][] = [
+				'href'        => 'https://d3ptmkrtf16kmh.cloudfront.net/encrypto-1.0.1.js',
+				'integrity'   => 'sha512-fezEmqlQWwvKq3A2s897RSda3JsDen/xmPTsBmnx6TWk++rnofg2omiNLHhCbQvQ8DtEvfAvXQTsvE95DlELAw==',
+				'crossOrigin' => 'anonymous'
+			];
 		}
 
 		return $this->load->view('extension/emerchantpay/payment/' . $template, $data);
@@ -101,6 +111,9 @@ class EmerchantpayDirect extends BaseController
 			'button_target'    => $this->buildUrl(
 				'extension/emerchantpay/payment/emerchantpay_direct',
 				'send'
+			),
+			'cse_public_key'   => SettingsHelper::deepTrim(
+				$this->config->get("{$this->module_name}_cse_public_key")
 			),
 		);
 	}
@@ -146,11 +159,11 @@ class EmerchantpayDirect extends BaseController
 
 			$transaction_response = $model->sendTransaction($data);
 
-            if (!$transaction_response->isSuccessful()) {
-                throw new Exception($transaction_response->getErrorDescription());
-            }
+			if (!$transaction_response->isSuccessful()) {
+				throw new Exception($transaction_response->getErrorDescription());
+			}
 
-            $transaction = $transaction_response->getResponseObject();
+			$transaction = $transaction_response->getResponseObject();
 			if (isset($transaction->unique_id)) {
 				$data = $this->populateDataUniqIdTrx($transaction, $order_info);
 
@@ -308,21 +321,18 @@ class EmerchantpayDirect extends BaseController
 					$year = trim($year);
 
 					if (strlen($year) == 2) {
-						return sprintf('20%s', $year);
+						return sprintf('%s%s', substr(date('Y'), 0, 2), $year);
 					}
 
-					return substr($year, 0, 4);
+					return $year;
 				}
 				break;
 			case 'month':
 				$expire = explode('/', $input);
 				if (count($expire) == 2) {
 					list($month,) = $expire;
-					$month = trim($month);
 
-					if ($month) {
-						return substr(strval($month), 0, 2);
-					}
+					return trim($month);
 				}
 				break;
 		}
@@ -389,15 +399,17 @@ class EmerchantpayDirect extends BaseController
 	 * @return array
 	 */
 	private function populateCreditCardData() {
+		$card_number = $this->inputFilter(
+			$this->request->post['emerchantpay_direct-cc-number'],
+			'number'
+		);
+
 		return [
 			'card_holder'        => $this->inputFilter(
 				$this->request->post['emerchantpay_direct-cc-holder'],
 				'name'
 			),
-			'card_number'        => $this->inputFilter(
-				$this->request->post['emerchantpay_direct-cc-number'],
-				'number'
-			),
+			'card_number'        => $card_number,
 			'cvv'                => $this->inputFilter(
 				$this->request->post['emerchantpay_direct-cc-cvv'],
 				'cvv'
@@ -410,6 +422,7 @@ class EmerchantpayDirect extends BaseController
 				$this->request->post['emerchantpay_direct-cc-expiration'],
 				'year'
 			),
+			'encrypted'          => strlen($card_number ?? '') > 19,
 		];
 	}
 

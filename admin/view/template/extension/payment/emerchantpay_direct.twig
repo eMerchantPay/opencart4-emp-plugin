@@ -188,6 +188,18 @@
                         <input type="text" name="emerchantpay_direct_sca_exemption_amount" value="{{ emerchantpay_direct_sca_exemption_amount }}" placeholder="{{ entry_sca_exemption_amount }}" id="input-sca_exemption_amount" class="form-control" />
                     </div>
                 </div>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="{{ module_name }}_cse_public_key">
+                        <span data-toggle="tooltip" title="{{ help_cse_public_key }}">
+                        {{ entry_cse_public_key }}
+                      </span>
+                    </label>
+                    <div class="col-sm-10">
+                        <textarea id="{{ module_name }}_cse_public_key" name="{{ module_name }}_cse_public_key"
+                                  placeholder="{{ entry_cse_public_key }}"
+                                  class="form-control">{{ emerchantpay_direct_cse_public_key }}</textarea>
+                    </div>
+                </div>
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">
                   <span data-bs-toggle="tooltip" title="{{ help_supports_partial_capture }}">

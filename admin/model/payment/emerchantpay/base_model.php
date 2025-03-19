@@ -39,7 +39,7 @@ class BaseModel extends Model
 	 *
 	 * @var string
 	 */
-	protected $module_version = '1.2.1';
+	protected $module_version = '1.2.2';
 
 	/**
 	 * Returns formatted array with available SCA Exemptions

@@ -3,7 +3,7 @@
     "description": "emerchantpay Gateway Module for OpenCart",
     "type": "opencart-module",
     "license": "GPL-2.0",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "authors": [
         {
             "name": "emerchantpay",

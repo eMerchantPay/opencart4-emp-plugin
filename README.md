@@ -7,8 +7,8 @@ This is a Payment Module for OpenCart, that gives you the ability to process pay
 Requirements
 ------------
 
-* OpenCart 4.0.2.X (due to architectural changes, this module is __incompatible__ with older OpenCart versions)
-* [GenesisPHP v2.0.5](https://github.com/GenesisGateway/genesis_php/tree/2.0.5) - (Integrated in Module)
+* OpenCart 4.0.2.X - 4.1.0.X (due to architectural changes, this module is __incompatible__ with older OpenCart versions)
+* [GenesisPHP v2.1.2](https://github.com/GenesisGateway/genesis_php/tree/2.1.2) - (Integrated in Module)
 * PCI-certified server in order to use ```emerchantpay Direct```
 
 GenesisPHP Requirements
@@ -95,7 +95,7 @@ Supported Transactions & Payment Methods
     * __Bancontact (BCT)__ 
     * __BLIK (BLK)__
     * __SPEI (SE)__
-    * __LatiPay (PID)__
+    * __PayID (PID)__
   * __OXXO__
   * __P24__
   * __Pago Facil__
